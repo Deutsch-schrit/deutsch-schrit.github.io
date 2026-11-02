@@ -126,6 +126,7 @@
     else if (p[0] === 'thema') { setNav('grammatik'); topicPage(p[1]); }
     else if (p[0] === 'wortschatz') { setNav('wortschatz'); vocabPage(r.q); }
     else if (p[0] === 'karteikarten') { setNav('karteikarten'); flashPage(r.q); }
+    else if (p[0] === 'konjugation' && window.ConjUI) window.ConjUI.page(p[1], r.q);
     else if (p[0] === 'pruefungen' && window.ExamUI) window.ExamUI.list(p[1]);
     else if (p[0] === 'pruefung' && window.ExamUI) window.ExamUI.exam(p[1], p[2]);
     else { setNav(''); main.innerHTML = '<div class="page-head"><h1>Page not found</h1><p class="sub">This page does not exist. <a href="#/">Go to the start page</a>.</p></div>'; }
@@ -162,8 +163,9 @@
       '<p class="gg-feedback" id="gg-fb"></p><p class="gg-score" id="gg-score"></p></div></section>' +
       '<section><div class="section-head"><h2>Your path from A1 to C2</h2><p>Each step opens the grammar topics for that level.</p></div><div class="ladder">' + steps + '</div></section>' +
       '<section class="tools"><div><h3>Grammar</h3><p>Every topic has a short explanation, tables, example sentences with translations, typical mistakes and an exercise with answers.</p><a class="more" href="#/grammatik">All topics</a></div>' +
-      '<div><h3>Vocabulary</h3><p>Nouns with article and plural, verbs with Präteritum and Perfekt, adjectives with Komparativ and Superlativ. Search in German or English.</p><a class="more" href="#/wortschatz">Open the word list</a></div>' +
+      '<div><h3>Vocabulary</h3><p>Nouns with article and plural, verbs with Präteritum and Perfekt, adjectives with Komparativ and Superlativ, adverbs with example sentences. Search in German or English.</p><a class="more" href="#/wortschatz">Open the word list</a></div>' +
       '<div><h3>Flashcards</h3><p>Flip cards or type your answers and get them checked. Hard words come back more often, easy ones less often. Your progress stays in this browser.</p><a class="more" href="#/karteikarten">Start practising</a></div>' +
+      '<div><h3>Conjugation</h3><p>Every verb in the vocabulary conjugated in all persons and tenses, from Präsens to Konjunktiv II and the imperative, with a self-test.</p><a class="more" href="#/konjugation">Look up a verb</a></div>' +
       '<div><h3>Exam simulation</h3><p>Full model tests in the Goethe and telc formats from A1 to C2, with timers, listening texts read aloud, automatic marking and graded writing.</p><a class="more" href="#/pruefungen">Choose an exam</a></div></section>';
     genderGame();
   }
@@ -451,7 +453,7 @@
       document.getElementById('vdef').innerHTML = defHtml(state.type);
       count.textContent = rows.length + (rows.length === 1 ? ' word' : ' words');
       body.innerHTML = rows.length ? rows.map(function (e) {
-        return '<tr><td class="w">' + wordHtml(e) + '</td><td class="f">' + formsHtml(e) + '</td><td class="e">' + esc(e.en) + '</td><td class="l hide-s">' + e.level + '</td></tr>';
+        return '<tr><td class="w">' + (e.type === 'V' && window.ConjUI ? '<a class="vconj" href="' + window.ConjUI.link(e.word) + '" title="Show conjugation">' + wordHtml(e) + '</a>' : wordHtml(e)) + '</td><td class="f">' + formsHtml(e) + '</td><td class="e">' + esc(e.en) + '</td><td class="l hide-s">' + e.level + '</td></tr>';
       }).join('') : '<tr><td colspan="4" class="empty">No words match. Try another spelling or choose "All".</td></tr>';
     }
     main.querySelectorAll('.chip[data-group]').forEach(function (b) {
