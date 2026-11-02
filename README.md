@@ -8,6 +8,7 @@ Live site: https://deutsch-schrit.github.io/deutsch-schritt/
 
 - **Grammar**: 58 topics across six levels. Each has an explanation, tables, example sentences with translations, typical mistakes and a 10-question quiz that marks your answers.
 - **Wortschatz**: about 650 words. Nouns with article and plural, verbs with Präteritum and Perfekt, adjectives with Komparativ and Superlativ. Search and filter by level and word type.
+- **Exam simulation**: 12 original model tests in the structure of the Goethe-Zertifikat and telc Deutsch exams (A1 to C2), with timers, listening texts read aloud by the browser, automatic marking, writing checks with a rubric and speaking practice with recording. Data in `js/exams/`, engine in `js/exam.js`.
 - **Karteikarten**: flashcards with a five-box spaced-repetition system. Progress is stored in the browser (localStorage).
 
 ## Adding content

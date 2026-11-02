@@ -107,6 +107,7 @@
   }
   function render() {
     stopKeys();
+    if (window.ExamUI) window.ExamUI.stop();
     var r = parseHash();
     var p = r.parts;
     if (!p.length) { setNav(''); home(); document.title = 'Deutsch Schritt für Schritt'; }
@@ -114,6 +115,8 @@
     else if (p[0] === 'thema') { setNav('grammatik'); topicPage(p[1]); }
     else if (p[0] === 'wortschatz') { setNav('wortschatz'); vocabPage(r.q); }
     else if (p[0] === 'karteikarten') { setNav('karteikarten'); flashPage(r.q); }
+    else if (p[0] === 'pruefungen' && window.ExamUI) window.ExamUI.list(p[1]);
+    else if (p[0] === 'pruefung' && window.ExamUI) window.ExamUI.exam(p[1], p[2]);
     else { setNav(''); main.innerHTML = '<div class="page-head"><h1>Page not found</h1><p class="sub">This page does not exist. <a href="#/">Go to the start page</a>.</p></div>'; }
     window.scrollTo(0, 0);
   }
@@ -149,7 +152,8 @@
       '<section><div class="section-head"><h2>Your path from A1 to C2</h2><p>Each step opens the grammar topics for that level.</p></div><div class="ladder">' + steps + '</div></section>' +
       '<section class="tools"><div><h3>Grammar</h3><p>Every topic has a short explanation, tables, example sentences with translations, typical mistakes and an exercise with answers.</p><a class="more" href="#/grammatik">All topics</a></div>' +
       '<div><h3>Vocabulary</h3><p>Nouns with article and plural, verbs with Präteritum and Perfekt, adjectives with Komparativ and Superlativ. Search in German or English.</p><a class="more" href="#/wortschatz">Open the word list</a></div>' +
-      '<div><h3>Flashcards</h3><p>Flip cards or type your answers and get them checked. Hard words come back more often, easy ones less often. Your progress stays in this browser.</p><a class="more" href="#/karteikarten">Start practising</a></div></section>';
+      '<div><h3>Flashcards</h3><p>Flip cards or type your answers and get them checked. Hard words come back more often, easy ones less often. Your progress stays in this browser.</p><a class="more" href="#/karteikarten">Start practising</a></div>' +
+      '<div><h3>Exam simulation</h3><p>Full model tests in the Goethe and telc formats from A1 to C2, with timers, listening texts read aloud, automatic marking and graded writing.</p><a class="more" href="#/pruefungen">Choose an exam</a></div></section>';
     genderGame();
   }
 
@@ -698,5 +702,6 @@
     idle();
   }
 
+  window.DS = { main: main, load: load, save: save, esc: esc, setNav: setNav };
   render();
 })();
