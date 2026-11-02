@@ -138,6 +138,11 @@ A|falsch|—|—|wrong
 A|müde|müder|am müdesten|tired
 A|krank|kränker|am kränksten|ill, sick
 A|glücklich|glücklicher|am glücklichsten|happy
+N|die|Polizei|—|police
+V|telefonieren|telefonierte|hat telefoniert|to make a phone call
+V|reservieren|reservierte|hat reserviert|to book, to reserve
+V|lächeln|lächelte|hat gelächelt|to smile
+N|der|Kunde|Kunden|customer (male)
 `,
 A2: `
 N|der|Urlaub|Urlaube|holiday, vacation
@@ -257,6 +262,16 @@ A|traurig|trauriger|am traurigsten|sad
 A|zufrieden|zufriedener|am zufriedensten|satisfied
 A|pünktlich|pünktlicher|am pünktlichsten|punctual
 A|fleißig|fleißiger|am fleißigsten|hard-working
+N|die|Feuerwehr|Feuerwehren|fire brigade
+N|der|Krankenwagen|Krankenwagen|ambulance
+N|die|Werkstatt|Werkstätten|(car) repair shop, workshop
+N|die|Kita|Kitas|day-care centre, nursery
+N|die|Entschuldigung|Entschuldigungen|apology; excuse me
+V|sich vorstellen|stellte sich vor|hat sich vorgestellt|to introduce oneself
+V|sich bedanken|bedankte sich|hat sich bedankt|to say thank you
+N|das|Telefongespräch|Telefongespräche|phone call
+N|der|Arbeitsplatz|Arbeitsplätze|workplace; job
+N|das|Heimatland|Heimatländer|home country
 `,
 B1: `
 N|die|Gesellschaft|Gesellschaften|society; company
@@ -372,6 +387,22 @@ A|verschieden|—|—|different, various
 A|ständig|—|—|constant
 A|überrascht|—|—|surprised
 A|enttäuscht|—|—|disappointed
+N|die|Ausländerbehörde|Ausländerbehörden|immigration office
+N|der|Aufenthaltstitel|Aufenthaltstitel|residence permit
+V|ablaufen|lief ab|ist abgelaufen|to expire; to take place
+N|die|Rückmeldung|Rückmeldungen|feedback, reply
+N|der|Ratschlag|Ratschläge|piece of advice
+V|vorbereiten|bereitete vor|hat vorbereitet|to prepare
+N|die|Vorbereitung|Vorbereitungen|preparation
+V|auflegen|legte auf|hat aufgelegt|to hang up (the phone)
+V|zusammenfassen|fasste zusammen|hat zusammengefasst|to summarise
+A|unhöflich|unhöflicher|am unhöflichsten|rude, impolite
+A|entspannt|entspannter|am entspanntesten|relaxed
+N|der|Gesprächspartner|Gesprächspartner|person you are talking to
+N|die|Lieferung|Lieferungen|delivery
+V|zurückschicken|schickte zurück|hat zurückgeschickt|to send back, to return
+N|die|Bescheinigung|Bescheinigungen|certificate, written confirmation
+N|der|Notfalldienst|Notfalldienste|emergency service
 `,
 B2: `
 N|die|Voraussetzung|Voraussetzungen|prerequisite, requirement
@@ -510,6 +541,20 @@ A|wesentlich|—|—|essential, substantial
 A|widersprüchlich|—|—|contradictory
 A|zahlreich|—|—|numerous
 A|zuständig|—|—|responsible, in charge
+N|die|Höflichkeit|—|politeness
+N|die|Verabschiedung|Verabschiedungen|saying goodbye; farewell
+A|undeutlich|undeutlicher|am undeutlichsten|unclear, indistinct
+V|nuscheln|nuschelte|hat genuschelt|to mumble
+N|die|Körperhaltung|Körperhaltungen|posture, body language
+N|das|Missverständnis|Missverständnisse|misunderstanding
+N|das|Fazit|Fazits|conclusion, summary (ein Fazit ziehen)
+N|der|Umgang|—|dealing with, handling (der Umgang mit Kollegen)
+N|der|Ratgeber|Ratgeber|guide, adviser
+N|der|Interneteinkauf|Interneteinkäufe|online purchase
+N|die|Rücksendung|Rücksendungen|return (of goods)
+N|der|Befragte|Befragten|respondent in a survey (female: die Befragte)
+N|die|Sprachhandlung|Sprachhandlungen|speech act, communicative task
+V|lösen|löste|hat gelöst|to solve; to resolve (a conflict)
 `,
 C1: `
 N|die|Annahme|Annahmen|assumption
