@@ -1,22 +1,22 @@
 GRAMMAR.push(
 {
   level: 'B2', id: 'b2-zustandspassiv', title: 'The passive with sein', de: 'Das Passiv mit sein (Zustandspassiv)',
-  summary: 'Die Ware wird verpackt (process) versus Die Ware ist verpackt (resulting state). Aspekte Neu B2, Kapitel 6.',
+  summary: 'Das Fenster wird geöffnet (process) versus Das Fenster ist geöffnet (resulting state).',
   body:
   '<p>The <strong>Vorgangspassiv</strong> (werden + Partizip II) describes an action in progress. The <strong>Zustandspassiv</strong> (sein + Partizip II) describes the <strong>state</strong> that exists after the action is finished.</p>' +
-  TBL(' | Vorgangspassiv (process) | Zustandspassiv (state)\nFormation | werden + Partizip II | sein + Partizip II\nPräsens | Die Ware wird verschickt. | Die Ware ist verschickt.\nPräteritum | Die Ware wurde verschickt. | Die Ware war verschickt.\nQuestion it answers | What is happening? | What is the situation now?') +
+  TBL(' | Vorgangspassiv (process) | Zustandspassiv (state)\nFormation | werden + Partizip II | sein + Partizip II\nPräsens | Die Tür wird geschlossen. | Die Tür ist geschlossen.\nPräteritum | Die Tür wurde geschlossen. | Die Tür war geschlossen.\nQuestion it answers | What is happening? | What is the situation now?') +
   '<p>The Zustandspassiv is used almost only in the Präsens and Präteritum.</p>' +
   '<h2>Process first, state afterwards</h2>' +
-  EX('Das Geschäft wird um 20 Uhr geschlossen. → Jetzt ist es geschlossen. | The shop is closed at 8 pm (action). Now it is closed (state).\nDas Konto wurde gesperrt. → Das Konto war gesperrt. | The account was blocked (event). The account was blocked (condition).\nDieser Tisch ist leider reserviert. | Unfortunately this table is reserved.\nAlles ist gut organisiert. | Everything is well organised.') +
+  EX('Die Bibliothek wird um 20 Uhr abgeschlossen. → Danach ist sie abgeschlossen. | The library is locked at 8 pm (action). After that it is locked (state).\nDie Straße wurde gesperrt. → Die Straße war den ganzen Tag gesperrt. | The road was closed (event). The road was closed all day (condition).\nDer Platz am Fenster ist schon besetzt. | The seat by the window is already taken.\nDie Hausaufgaben sind erledigt. | The homework is done.') +
   '<p>Only verbs whose action leaves a lasting result form a natural Zustandspassiv: <span class="de">öffnen, schließen, reservieren, verpacken, beschädigen, bezahlen, sperren, erledigen, ausverkaufen</span>.</p>' +
   '<h2>Three structures that look alike</h2>' +
-  TBL('Structure | Example | How to recognise it\nZustandspassiv | Die Ware ist verpackt. | describes a state; someone did it earlier\nPerfekt Passiv | Die Ware ist verpackt worden. | ends in worden; describes the finished action\nPerfekt Aktiv with sein | Das Paket ist angekommen. | verb of movement or change; no hidden agent') +
+  TBL('Structure | Example | How to recognise it\nZustandspassiv | Das Paket ist verpackt. | describes a state; someone did it earlier\nPerfekt Passiv | Das Paket ist verpackt worden. | ends in worden; describes the finished action\nPerfekt Aktiv with sein | Das Paket ist angekommen. | verb of movement or change; no hidden agent') +
   '<h2>werden or sein?</h2>' +
-  '<p>Use <strong>werden</strong> for procedures, rules and ongoing steps: <span class="de">Wenn im Internet Ware bestellt wird, trägt der Verkäufer das Versandrisiko.</span> Use <strong>sein</strong> for a condition already reached: <span class="de">Wenn die Ware bei Empfang beschädigt ist, muss der Verkäufer den Schaden ersetzen.</span></p>' +
+  '<p>Use <strong>werden</strong> for procedures, rules and ongoing steps: <span class="de">In unserer Firma werden Rechnungen jeden Freitag bezahlt.</span> Use <strong>sein</strong> for a condition already reached: <span class="de">Wenn die Rechnung schon bezahlt ist, müssen Sie nichts mehr tun.</span></p>' +
   MISTAKE('Das Formular wird schon ausgefüllt. (it is done)', 'Das Formular ist schon ausgefüllt.') +
   PRACTICE('Turn the Vorgangspassiv into a Zustandspassiv in the same tense.',
-    'Die Bestellung wird abgeschlossen.\nDas Paket wurde verschickt.\nDie Tische werden reserviert.\nDer Fehler wurde behoben.\nDas Kundenkonto wurde gesperrt.',
-    'Die Bestellung ist abgeschlossen.\nDas Paket war verschickt.\nDie Tische sind reserviert.\nDer Fehler war behoben.\nDas Kundenkonto war gesperrt.')
+    'Die Fenster werden geputzt.\nDer Brief wurde unterschrieben.\nDie Zimmer werden aufgeräumt.\nDer Fehler wurde behoben.\nDie Heizung wurde repariert.',
+    'Die Fenster sind geputzt.\nDer Brief war unterschrieben.\nDie Zimmer sind aufgeräumt.\nDer Fehler war behoben.\nDie Heizung war repariert.')
 },
 {
   level: 'B2', id: 'b2-passiversatz', title: 'Alternatives to the passive', de: 'Passiversatzformen',
@@ -33,10 +33,10 @@ GRAMMAR.push(
 },
 {
   level: 'B2', id: 'b2-als-ob', title: 'Unreal comparisons: als ob, als wenn, als', de: 'Irreale Vergleichssätze',
-  summary: 'Er tut so, als ob er alles wüsste. Konjunktiv II for comparisons that are not true. Aspekte Neu B2, Kapitel 6.',
+  summary: 'Er tut so, als ob er alles wüsste. Konjunktiv II for comparisons that are not true.',
   body:
   '<p>These clauses compare with something that is <strong>not real</strong>, so they use the <strong>Konjunktiv II</strong>. They follow verbs of perceiving, feeling and behaving.</p>' +
-  TBL('Type | Word order | Example\nals ob | verb at the end | Die Kollegen tun so, als ob sie perfekt wären.\nals wenn | verb at the end | Es scheint, als wenn wir uns schon lange kennen würden.\nals | verb directly after als | Der Chef behandelt uns, als wären wir gleichberechtigte Partner.') +
+  TBL('Type | Word order | Example\nals ob | verb at the end | Mein Nachbar tut so, als ob ihm das ganze Haus gehören würde.\nals wenn | verb at the end | Es fühlt sich an, als wenn heute Sonntag wäre.\nals | verb directly after als | Sie spricht so gut Deutsch, als wäre sie in Berlin aufgewachsen.') +
   '<p>The comparison clause always comes <strong>after</strong> the main clause. Typical introductions: <span class="de">Er tut so, … / Es sieht so aus, … / Es kommt mir so vor, … / Ich habe das Gefühl, … / Sie verhält sich, …</span></p>' +
   '<h2>Present and past</h2>' +
   TBL('Time | Form | Example\nsame time | wäre, hätte, könnte, würde + Inf. | Er tut so, als ob er keine Zeit hätte.\nearlier | hätte / wäre + Partizip II | Sie sieht aus, als hätte sie die ganze Nacht nicht geschlafen.') +
