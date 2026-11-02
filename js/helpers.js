@@ -19,7 +19,9 @@ window.TBL = function (s) {
 };
 
 /* Practice block: tasks one per line, answers one per line */
-window.PRACTICE = function (intro, tasks, answers) {
+/* The old static exercises are replaced by the interactive quiz (js/quiz/*.js). */
+window.PRACTICE = function () { return ''; };
+window.PRACTICE_STATIC = function (intro, tasks, answers) {
   var t = tasks.trim().split('\n').map(function (l) { return '<li>' + l.trim() + '</li>'; }).join('');
   var a = answers.trim().split('\n').map(function (l) { return '<li>' + l.trim() + '</li>'; }).join('');
   return '<section class="practice"><h2 id="practice">Practice</h2><p>' + intro + '</p><ol>' + t +

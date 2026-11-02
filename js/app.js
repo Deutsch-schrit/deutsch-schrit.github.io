@@ -184,7 +184,8 @@
     var list = only ? LEVELS.filter(function (l) { return l.code === only; }) : LEVELS;
     var blocks = list.map(function (l) {
       var items = topicsFor(l.code).map(function (t) {
-        return '<li><a href="#/thema/' + t.id + '"><span class="t">' + t.title + '<small>' + t.de + '</small></span><span class="s">' + t.summary + '</span></a></li>';
+        var b = quizBest[t.id];
+        return '<li><a href="#/thema/' + t.id + '"><span class="t">' + t.title + '<small>' + t.de + (b !== undefined ? ' <span class="qbadge' + (b >= 8 ? ' good' : '') + '">Quiz ' + b + '/10</span>' : '') + '</small></span><span class="s">' + t.summary + '</span></a></li>';
       }).join('');
       return '<section class="level-block" id="lvl-' + l.code + '"><h2><span class="level-tag">' + l.code + '</span>' + l.name + ' <small style="font-weight:400;color:var(--muted);font-size:17px;margin-left:8px">' + l.en + '</small></h2>' +
         '<p class="desc">' + l.desc + '</p><ul class="topic-list">' + (items || '<li class="empty">Topics for this level are coming soon.</li>') + '</ul>' +
@@ -210,6 +211,7 @@
       '<nav class="pager" aria-label="More topics">' +
       (prev ? '<a href="#/thema/' + prev.id + '"><small>Previous topic</small>' + prev.level + ': ' + prev.title + '</a>' : '<span></span>') +
       (next ? '<a class="next" href="#/thema/' + next.id + '"><small>Next topic</small>' + next.level + ': ' + next.title + '</a>' : '') + '</nav>';
+    if (window.QUIZ && window.QUIZ[t.id]) buildQuiz(t);
     var hs = main.querySelectorAll('#prose h2');
     var toc = '<h2>On this page</h2><ol>';
     hs.forEach(function (h, k) {
@@ -225,6 +227,153 @@
       ev.preventDefault();
       document.getElementById(a.dataset.target).scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+  }
+
+  /* ---------- grammar quiz ---------- */
+  var quizBest = load('dsfs-quiz', {});
+  function parseQuiz(raw) {
+    var intro = '', qs = [];
+    raw.trim().split('\n').forEach(function (line) {
+      line = line.trim();
+      if (!line) return;
+      if (line.charAt(0) === '@') { intro = line.slice(1).trim(); return; }
+      var p = line.split(' ## ');
+      qs.push({
+        prompt: p[0].trim(),
+        answers: p[1].split(' || ').map(function (a) { return a.trim(); }),
+        options: p[2] ? p[2].split(' | ').map(function (o) { return o.trim(); }) : null
+      });
+    });
+    return { intro: intro, questions: qs };
+  }
+  /* lenient for spelling conventions, strict for grammar: case, punctuation, "bitte" and ae/ä do not matter */
+  function qnorm(x) {
+    return String(x).toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+      .replace(/[.,!?;:"„“”'’…→]/g, ' ').replace(/\bbitte\b/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function markAnswer(input, answers) {
+    var g = qnorm(input);
+    if (!g) return 'bad';
+    var ns = answers.map(qnorm);
+    if (ns.indexOf(g) > -1) return 'ok';
+    /* a small typo is tolerated only in long answers, where it cannot be the grammar point itself */
+    return ns.some(function (a) { return a.length >= 15 && lev(g, a) <= 2; }) ? 'almost' : 'bad';
+  }
+  function promptHtml(p) { return esc(p).replace(/_{3,}/g, '<span class="blank" aria-label="gap"></span>'); }
+
+  function buildQuiz(t) {
+    var data = parseQuiz(window.QUIZ[t.id]), n = data.questions.length, state = [];
+    var prose = document.getElementById('prose');
+    var items = data.questions.map(function (q, i) {
+      var control = q.options
+        ? '<div class="qopts" role="group" aria-label="Answer options">' + q.options.map(function (o) {
+            return '<button type="button" class="qopt" data-o="' + esc(o) + '">' + esc(o) + '</button>'; }).join('') + '</div>'
+        : '<div class="qrow"><input class="qin" id="q' + i + '" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Answer to question ' + (i + 1) + '"><button type="button" class="btn qcheck">Check</button></div>';
+      return '<li class="qitem" data-i="' + i + '"><p class="qprompt">' + promptHtml(q.prompt) + '</p>' + control + '<p class="qfb" aria-live="polite"></p></li>';
+    }).join('');
+    var sec = document.createElement('section');
+    sec.className = 'quiz';
+    sec.innerHTML = '<h2 id="quiz">Quiz</h2><p class="qintro">' + esc(data.intro) + ' Press Enter to check a typed answer. You can type ae, oe, ue and ss instead of ä, ö, ü and ß.</p>' +
+      '<div class="umlauts qkeys" aria-label="Insert special characters">' + ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'].map(function (c) { return '<button type="button" class="ukey" data-ch="' + c + '">' + c + '</button>'; }).join('') + '</div>' +
+      '<ol class="qlist">' + items + '</ol>' +
+      '<div class="qbar"><p class="qscore" id="qscore" role="status"></p><div class="qbtns"><button type="button" class="btn primary" id="qall">Check all answers</button><button type="button" class="btn" id="qreset">Start again</button></div></div>';
+    prose.appendChild(sec);
+    var lastInput = null;
+
+    function setFeedback(li, q, res) {
+      li.classList.remove('r-ok', 'r-almost', 'r-bad');
+      li.classList.add('r-' + res);
+      var fb = li.querySelector('.qfb');
+      fb.textContent = res === 'ok' ? 'Correct.' : res === 'almost' ? 'Almost, check the spelling: ' + q.answers[0] : 'Answer: ' + q.answers[0];
+    }
+    function score() {
+      var done = state.filter(Boolean).length, right = state.filter(function (r) { return r === 'ok' || r === 'almost'; }).length;
+      var el = document.getElementById('qscore');
+      if (!done) { el.textContent = n + ' questions' + (quizBest[t.id] !== undefined ? '. Your best score: ' + quizBest[t.id] + ' / ' + n + '.' : '.'); return; }
+      el.textContent = 'Score: ' + right + ' / ' + done + ' answered' + (done === n ? '' : ', ' + (n - done) + ' to go') + '.';
+      if (done === n) {
+        var msg = right === n ? ' Perfect!' : right >= n * 0.8 ? ' Very good.' : right >= n * 0.5 ? ' Good start. Read the explanation again and retry the red ones.' : ' Read the explanation above again, then press Start again.';
+        el.textContent = 'Score: ' + right + ' / ' + n + '.' + msg;
+        if (quizBest[t.id] === undefined || right > quizBest[t.id]) { quizBest[t.id] = right; save('dsfs-quiz', quizBest); }
+      }
+    }
+    function checkTyped(li) {
+      var i = +li.dataset.i, inp = li.querySelector('.qin');
+      if (state[i] || !inp.value.trim()) return false;
+      state[i] = markAnswer(inp.value, data.questions[i].answers);
+      inp.readOnly = true;
+      li.querySelector('.qcheck').disabled = true;
+      setFeedback(li, data.questions[i], state[i]);
+      score();
+      return true;
+    }
+    sec.querySelectorAll('.qitem').forEach(function (li) {
+      var i = +li.dataset.i, q = data.questions[i];
+      var inp = li.querySelector('.qin');
+      if (inp) {
+        inp.addEventListener('focus', function () { lastInput = inp; });
+        inp.addEventListener('keydown', function (ev) {
+          if (ev.key !== 'Enter') return;
+          ev.preventDefault();
+          checkTyped(li);
+          var next = sec.querySelector('.qin:not([readonly])');
+          if (next) next.focus();
+        });
+        li.querySelector('.qcheck').addEventListener('click', function () { checkTyped(li); });
+      } else {
+        li.querySelectorAll('.qopt').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (state[i]) return;
+            state[i] = q.answers.indexOf(b.dataset.o) > -1 ? 'ok' : 'bad';
+            li.querySelectorAll('.qopt').forEach(function (x) {
+              x.disabled = true;
+              if (q.answers.indexOf(x.dataset.o) > -1) x.classList.add('is-right');
+              else if (x === b) x.classList.add('is-wrong');
+            });
+            setFeedback(li, q, state[i]);
+            score();
+          });
+        });
+      }
+    });
+    sec.querySelectorAll('.ukey').forEach(function (b) {
+      b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+      b.addEventListener('click', function () {
+        var inp = lastInput;
+        if (!inp || inp.readOnly) return;
+        var a = inp.selectionStart, z = inp.selectionEnd;
+        inp.value = inp.value.slice(0, a) + b.dataset.ch + inp.value.slice(z);
+        inp.focus(); inp.setSelectionRange(a + 1, a + 1);
+      });
+    });
+    document.getElementById('qall').addEventListener('click', function () {
+      sec.querySelectorAll('.qitem').forEach(function (li) {
+        var i = +li.dataset.i;
+        if (state[i]) return;
+        if (li.querySelector('.qin')) {
+          if (!checkTyped(li)) { state[i] = 'bad'; li.querySelector('.qin').readOnly = true; li.querySelector('.qcheck').disabled = true; setFeedback(li, data.questions[i], 'bad'); }
+        } else {
+          state[i] = 'bad';
+          li.querySelectorAll('.qopt').forEach(function (x) { x.disabled = true; if (data.questions[i].answers.indexOf(x.dataset.o) > -1) x.classList.add('is-right'); });
+          setFeedback(li, data.questions[i], 'bad');
+        }
+      });
+      score();
+    });
+    document.getElementById('qreset').addEventListener('click', function () {
+      state = [];
+      sec.querySelectorAll('.qitem').forEach(function (li) {
+        li.classList.remove('r-ok', 'r-almost', 'r-bad');
+        li.querySelector('.qfb').textContent = '';
+        var inp = li.querySelector('.qin');
+        if (inp) { inp.value = ''; inp.readOnly = false; li.querySelector('.qcheck').disabled = false; }
+        li.querySelectorAll('.qopt').forEach(function (x) { x.disabled = false; x.classList.remove('is-right', 'is-wrong'); });
+      });
+      score();
+      var first = sec.querySelector('.qin, .qopt');
+      if (first) first.focus();
+    });
+    score();
   }
 
   /* ---------- vocabulary page ---------- */

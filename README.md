@@ -6,7 +6,7 @@ Live site: https://deutsch-schrit.github.io/deutsch-schritt/
 
 ## What is inside
 
-- **Grammatik**: 58 topics across six levels. Each has an explanation, tables, example sentences with translations, typical mistakes and an exercise with answers.
+- **Grammar**: 58 topics across six levels. Each has an explanation, tables, example sentences with translations, typical mistakes and a 10-question quiz that marks your answers.
 - **Wortschatz**: about 650 words. Nouns with article and plural, verbs with Präteritum and Perfekt, adjectives with Komparativ and Superlativ. Search and filter by level and word type.
 - **Karteikarten**: flashcards with a five-box spaced-repetition system. Progress is stored in the browser (localStorage).
 
@@ -21,3 +21,11 @@ The site is plain HTML, CSS and JavaScript with no build step.
   - `A|gut|besser|am besten|good`
 
 Commit and push, and GitHub Pages updates the site within a minute or two.
+
+## Quizzes
+
+Each grammar topic has a quiz in `js/quiz/a1.js` to `c2.js`, one question per line:
+
+    prompt ## answer || alternative answer ## option | option | option
+
+Leave out the options for a typed answer. A first line starting with `@` is the instruction shown above the questions.
