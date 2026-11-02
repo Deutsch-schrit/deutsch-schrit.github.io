@@ -3,6 +3,7 @@
   N|article|word|plural|English        (article: der, die, das, or pl for plural-only nouns; plural — = none)
   V|infinitive|Präteritum (er/sie/es)|Perfekt (er/sie/es)|English
   A|adjective|Komparativ|Superlativ|English   (— = normally not compared)
+  D|adverb|type|German example sentence|English   (adverbs are in js/vocab-adverbs.js)
 */
 window.VOCAB_RAW = {
 A1: `

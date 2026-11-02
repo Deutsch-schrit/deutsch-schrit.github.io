@@ -487,3 +487,4 @@ kbd { font-family: var(--sans); font-size: 12px; border: 1px solid var(--line); 
   .vtable .flab { display: block; min-width: 0; font-size: 11px; }
   .vtable td.f .fl + .fl { margin-top: 6px; }
 }
+.vtable td.f .fex { white-space: normal; font-style: italic; color: var(--muted); margin-top: 2px; }

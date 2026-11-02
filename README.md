@@ -20,6 +20,7 @@ The site is plain HTML, CSS and JavaScript with no build step.
   - `N|der|Mann|Männer|man; husband`
   - `V|gehen|ging|ist gegangen|to go`
   - `A|gut|besser|am besten|good`
+  - Adverbs live in `js/vocab-adverbs.js`: `D|heute|time|Heute habe ich keine Zeit.|today`
 
 Commit and push, and GitHub Pages updates the site within a minute or two.
 

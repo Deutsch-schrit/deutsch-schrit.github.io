@@ -9,7 +9,7 @@
     { code: 'C1', name: 'Advanced', en: 'Fortgeschritten', desc: 'Academic and professional German: nominal style, nuance, precision.' },
     { code: 'C2', name: 'Proficient', en: 'Exzellent', desc: 'Style, register and idiom close to a native speaker.' }
   ];
-  var TYPE_NAMES = { N: 'Noun', V: 'Verb', A: 'Adjective' };
+  var TYPE_NAMES = { N: 'Noun', V: 'Verb', A: 'Adjective', D: 'Adverb' };
   var INTERVAL_DAYS = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 16 };
   var DAY = 86400000;
   var main = document.getElementById('main');
@@ -31,6 +31,7 @@
       var e;
       if (p[0] === 'N') e = { type: 'N', art: p[1], word: p[2], f1: p[3], en: p[4] };
       else if (p[0] === 'V') e = { type: 'V', word: p[1], f1: p[2], f2: p[3], en: p[4] };
+      else if (p[0] === 'D') e = { type: 'D', word: p[1], cat: p[2], ex: p[3], en: p[4] };
       else e = { type: 'A', word: p[1], f1: p[2], f2: p[3], en: p[4] };
       e.level = lvl;
       e.id = lvl + '|' + e.type + '|' + (e.art || '') + e.word;
@@ -50,12 +51,14 @@
   function formsText(e) {
     if (e.type === 'N') return e.art === 'pl' ? 'plural only' : (e.f1 === '—' ? 'no plural' : 'die ' + e.f1);
     if (e.type === 'V') return e.f1 + ', ' + e.f2;
+    if (e.type === 'D') return e.cat + ': ' + e.ex;
     return e.f1 === '—' ? '—' : e.f1 + ', ' + e.f2;
   }
   function formsHtml(e) {
     function lab(name, val) { return '<span class="fl"><span class="flab">' + name + '</span> ' + esc(val) + '</span>'; }
     if (e.type === 'N') return lab('Plural', formsText(e));
     if (e.type === 'V') return lab('Präteritum', e.f1) + lab('Perfekt', e.f2);
+    if (e.type === 'D') return lab('Type', e.cat) + '<span class="fl fex">' + esc(e.ex) + '</span>';
     if (e.f1 === '—') return '<span class="fl"><span class="flab">not compared</span></span>';
     return lab('Komparativ', e.f1) + lab('Superlativ', e.f2);
   }
@@ -416,7 +419,7 @@
     main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Vocabulary</h1><p class="sub">' + VOCAB.length +
       ' words from A1 to C2. Nouns show their article in colour: <span class="art art-der">der</span>, <span class="art art-die">die</span>, <span class="art art-das">das</span>.</p></div>' +
       '<div class="filters"><div class="fgroup"><span>Level</span>' + chipRow('level', [['all', 'All']].concat(LEVELS.map(function (l) { return [l.code, l.code]; })), state.level) + '</div>' +
-      '<div class="fgroup"><span>Word type</span>' + chipRow('type', [['all', 'All'], ['N', 'Nouns'], ['V', 'Verbs'], ['A', 'Adjectives']], state.type) + '</div>' +
+      '<div class="fgroup"><span>Word type</span>' + chipRow('type', [['all', 'All'], ['N', 'Nouns'], ['V', 'Verbs'], ['A', 'Adjectives'], ['D', 'Adverbs']], state.type) + '</div>' +
       '<div class="fgroup"><label for="vsearch"><span style="font-size:14px;color:var(--muted)">Search</span></label><input id="vsearch" class="search" type="search" placeholder="German or English" autocomplete="off"></div></div>' +
       '<p class="vcount" id="vcount"></p><div style="overflow-x:auto"><table class="vtable"><thead><tr><th>Word</th><th>Forms</th><th>English</th><th class="hide-s">Level</th></tr></thead><tbody id="vbody"></tbody></table></div>';
     var body = document.getElementById('vbody'), count = document.getElementById('vcount');
@@ -446,10 +449,11 @@
 
   /* ---------- flashcards ---------- */
   function flashPage(q) {
-    var saved = load('dsfs-settings', { levels: ['A1'], types: ['N', 'V', 'A'], dir: 'de', perSession: 20 });
+    var saved = load('dsfs-settings', { levels: ['A1'], types: ['N', 'V', 'A', 'D'], dir: 'de', perSession: 20 });
     if (q.level) saved.levels = [q.level];
     if (!saved.mode) saved.mode = 'flip';
     if (saved.forms === undefined) saved.forms = true;
+    if (!saved.advSeen) { if (saved.types.indexOf('D') < 0) saved.types.push('D'); saved.advSeen = true; save('dsfs-settings', saved); }
     var s = saved;
     document.title = 'Flashcards | Deutsch Schritt für Schritt';
     main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Flashcards</h1><p class="sub">Turn the cards over and rate yourself, or type your answers and let the site check them. Words you miss come back sooner; words you know wait longer.</p></div>' +
@@ -471,7 +475,7 @@
         }).join('') + '</div>';
       }
       setup.innerHTML = '<div class="fgroup"><span>Level</span>' + multi('levels', LEVELS.map(function (l) { return [l.code, l.code]; }), s.levels) + '</div>' +
-        '<div class="fgroup"><span>Word type</span>' + multi('types', [['N', 'Nouns'], ['V', 'Verbs'], ['A', 'Adjectives']], s.types) + '</div>' +
+        '<div class="fgroup"><span>Word type</span>' + multi('types', [['N', 'Nouns'], ['V', 'Verbs'], ['A', 'Adjectives'], ['D', 'Adverbs']], s.types) + '</div>' +
         '<div class="fgroup"><span>Practice mode</span><div class="chips"><button class="chip" data-mode="flip" aria-pressed="' + (s.mode === 'flip') + '">Flip cards</button><button class="chip" data-mode="type" aria-pressed="' + (s.mode === 'type') + '">Type answers</button></div></div>' +
         (s.mode === 'type' ? '<div class="fgroup"><span>Also ask for</span><div class="chips"><button class="chip" data-forms="1" aria-pressed="' + s.forms + '">Word + forms</button><button class="chip" data-forms="0" aria-pressed="' + !s.forms + '">Word only</button></div></div>' : '') +
         '<div class="fgroup"><span>Direction</span><div class="chips"><button class="chip" data-dir="de" aria-pressed="' + (s.dir === 'de') + '">German first</button><button class="chip" data-dir="en" aria-pressed="' + (s.dir === 'en') + '">English first</button></div></div>' +
@@ -686,6 +690,7 @@
         var rows = '';
         if (e.type === 'N') rows = '<dt>Plural</dt><dd>' + esc(formsText(e)) + '</dd>';
         if (e.type === 'V') rows = '<dt>Präteritum</dt><dd>' + esc(e.f1) + '</dd><dt>Perfekt</dt><dd>' + esc(e.f2) + '</dd>';
+        if (e.type === 'D') rows = '<dt>Type</dt><dd>' + esc(e.cat) + '</dd><dt>Example</dt><dd>' + esc(e.ex) + '</dd>';
         if (e.type === 'A' && e.f1 !== '—') rows = '<dt>Komparativ</dt><dd>' + esc(e.f1) + '</dd><dt>Superlativ</dt><dd>' + esc(e.f2) + '</dd>';
         var top = s.dir === 'de' ? '<p class="meaning">' + esc(e.en) + '</p>' : '<p class="front" style="font-size:36px;margin:0 0 14px">' + wordHtml(e) + '</p>';
         return top + (rows ? '<dl>' + rows + '</dl>' : '');
