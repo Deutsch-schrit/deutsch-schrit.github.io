@@ -489,3 +489,16 @@ kbd { font-family: var(--sans); font-size: 12px; border: 1px solid var(--line); 
 }
 .vtable td.f .fkind { white-space: normal; font-size: 14px; color: var(--muted); margin-bottom: 2px; }
 .vtable td.f .fl.fwrap { white-space: normal; }
+
+/* Word-type definitions on the vocabulary page */
+.wdef { margin: 4px 0 18px; }
+.wdef h2 { font-family: var(--sans); font-size: 17px; font-weight: 600; margin: 0 0 4px; }
+.wdef h2 small { font-weight: 400; color: var(--muted); font-size: 14px; margin-left: 4px; }
+.wdef p { margin: 0; font-size: 15px; line-height: 1.55; }
+.wdef .de { font-family: var(--sans); font-weight: 500; }
+.wdef.one { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--der); border-radius: var(--radius-s); padding: 14px 18px; max-width: 780px; }
+.wdef.one .wforms { margin-top: 8px; color: var(--muted); font-size: 14px; }
+.wdef.all { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.wdef.all > div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); padding: 12px 14px; }
+@media (max-width: 1000px) { .wdef.all { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .wdef.all { grid-template-columns: 1fr; } }

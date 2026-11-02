@@ -414,6 +414,22 @@
       return '<button class="chip" data-group="' + name + '" data-val="' + o[0] + '" aria-pressed="' + (active === o[0]) + '">' + o[1] + '</button>';
     }).join('') + '</div>';
   }
+  var WORD_DEFS = {
+    N: { name: 'Nouns', de: 'Nomen', what: 'A noun names a person, animal, place, thing or idea: <span class="de">die Frau, der Hund, die Stadt, das Glück</span>. In German every noun starts with a capital letter and has a gender: masculine (<span class="art art-der">der</span>), feminine (<span class="art art-die">die</span>) or neuter (<span class="art art-das">das</span>).', forms: 'Shown here: the article and the plural. Learn every noun with both.' },
+    V: { name: 'Verbs', de: 'Verben', what: 'A verb describes an action, an event or a state: <span class="de">gehen, essen, regnen, sein</span>. It changes its ending for the person (ich gehe, du gehst) and its form for the tense.', forms: 'Shown here: the Präteritum (simple past) and the Perfekt (present perfect), both in the er/sie/es form.' },
+    A: { name: 'Adjectives', de: 'Adjektive', what: 'An adjective describes a noun: what someone or something is like: <span class="de">ein großes Haus, die Suppe ist heiß</span>. Before a noun it takes an ending; after <span class="de">sein</span> or <span class="de">werden</span> it does not.', forms: 'Shown here: the Komparativ (bigger, more …) and the Superlativ (am größten, the most …).' },
+    D: { name: 'Adverbs', de: 'Adverbien', what: 'An adverb gives extra information about when, where, how, how often or why something happens: <span class="de">heute, dort, gern, oft, deshalb</span>. Adverbs never change their form.', forms: 'Shown here: the kind of adverb (time, place, manner …) and an example sentence.' }
+  };
+  function defHtml(type) {
+    if (type !== 'all' && WORD_DEFS[type]) {
+      var d = WORD_DEFS[type];
+      return '<div class="wdef one"><h2>' + d.name + ' <small>' + d.de + '</small></h2><p>' + d.what + '</p><p class="wforms">' + d.forms + '</p></div>';
+    }
+    return '<div class="wdef all">' + ['N', 'V', 'A', 'D'].map(function (k) {
+      var d = WORD_DEFS[k];
+      return '<div><h2>' + d.name + ' <small>' + d.de + '</small></h2><p>' + d.what + '</p></div>';
+    }).join('') + '</div>';
+  }
   function vocabPage(q) {
     var state = { level: q.level || 'all', type: q.type || 'all', text: '' };
     document.title = 'Vocabulary | Deutsch Schritt für Schritt';
@@ -422,7 +438,7 @@
       '<div class="filters"><div class="fgroup"><span>Level</span>' + chipRow('level', [['all', 'All']].concat(LEVELS.map(function (l) { return [l.code, l.code]; })), state.level) + '</div>' +
       '<div class="fgroup"><span>Word type</span>' + chipRow('type', [['all', 'All'], ['N', 'Nouns'], ['V', 'Verbs'], ['A', 'Adjectives'], ['D', 'Adverbs']], state.type) + '</div>' +
       '<div class="fgroup"><label for="vsearch"><span style="font-size:14px;color:var(--muted)">Search</span></label><input id="vsearch" class="search" type="search" placeholder="German or English" autocomplete="off"></div></div>' +
-      '<p class="vcount" id="vcount"></p><div style="overflow-x:auto"><table class="vtable"><thead><tr><th>Word</th><th>Forms &amp; details</th><th>English</th><th class="hide-s">Level</th></tr></thead><tbody id="vbody"></tbody></table></div>';
+      '<div id="vdef"></div><p class="vcount" id="vcount"></p><div style="overflow-x:auto"><table class="vtable"><thead><tr><th>Word</th><th>Forms &amp; details</th><th>English</th><th class="hide-s">Level</th></tr></thead><tbody id="vbody"></tbody></table></div>';
     var body = document.getElementById('vbody'), count = document.getElementById('vcount');
     function draw() {
       var t = norm(state.text);
@@ -432,6 +448,7 @@
         if (t && norm(e.word).indexOf(t) < 0 && norm(e.en).indexOf(t) < 0) return false;
         return true;
       });
+      document.getElementById('vdef').innerHTML = defHtml(state.type);
       count.textContent = rows.length + (rows.length === 1 ? ' word' : ' words');
       body.innerHTML = rows.length ? rows.map(function (e) {
         return '<tr><td class="w">' + wordHtml(e) + '</td><td class="f">' + formsHtml(e) + '</td><td class="e">' + esc(e.en) + '</td><td class="l hide-s">' + e.level + '</td></tr>';
