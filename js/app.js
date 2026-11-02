@@ -204,6 +204,23 @@
       '<div class="chips" style="margin-bottom:28px"><a class="chip" aria-pressed="' + (!only) + '" href="#/grammatik" style="text-decoration:none">All levels</a>' + levelNav + '</div>' + blocks;
   }
 
+  function basicsHTML(id) {
+    var b = window.BASICS && window.BASICS[id];
+    if (!b) return '';
+    var h = '<section class="basics"><h2>What is it?</h2>' + b.what;
+    if (b.terms && b.terms.length) {
+      h += '<dl class="terms">' + b.terms.map(function (x) {
+        return '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>';
+      }).join('') + '</dl>';
+    }
+    if (b.when && b.when.length) {
+      h += '<h2>When do you use it?</h2><ul class="when">' + b.when.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>';
+    }
+    if (b.english) h += '<div class="note vs-en"><strong>Compared with English</strong><br>' + b.english + '</div>';
+    h += '<h2>How it works</h2></section>';
+    return h;
+  }
+
   function topicPage(id) {
     var all = window.GRAMMAR, i = all.findIndex(function (t) { return t.id === id; });
     if (i < 0) { main.innerHTML = '<div class="page-head"><h1>Topic not found</h1><p class="sub"><a href="#/grammatik">Back to all topics</a></p></div>'; return; }
@@ -211,7 +228,7 @@
     document.title = t.title + ' (' + t.level + ') | Deutsch Schritt für Schritt';
     main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/grammatik">Grammar</a> / <a href="#/grammatik/' + t.level.toLowerCase() + '">' + t.level + '</a></p>' +
       '<h1><span class="level-tag">' + t.level + '</span>' + t.title + '</h1><p class="sub"><strong style="font-family:var(--sans);font-weight:500;color:var(--ink)">' + t.de + '</strong><br>' + t.summary + '</p></div>' +
-      '<div class="topic-layout"><article class="prose" id="prose">' + t.body + '</article><aside class="toc" id="toc"></aside></div>' +
+      '<div class="topic-layout"><article class="prose" id="prose">' + basicsHTML(t.id) + t.body + '</article><aside class="toc" id="toc"></aside></div>' +
       '<nav class="pager" aria-label="More topics">' +
       (prev ? '<a href="#/thema/' + prev.id + '"><small>Previous topic</small>' + prev.level + ': ' + prev.title + '</a>' : '<span></span>') +
       (next ? '<a class="next" href="#/thema/' + next.id + '"><small>Next topic</small>' + next.level + ': ' + next.title + '</a>' : '') + '</nav>';

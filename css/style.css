@@ -462,3 +462,16 @@ kbd { font-family: var(--sans); font-size: 12px; border: 1px solid var(--line); 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Basics block: definition, key terms, when to use */
+.basics > h2:first-child { margin-top: 8px; }
+.terms { display: grid; gap: 0; margin: 4px 0 22px; border: 1px solid var(--line); border-radius: var(--radius-s); overflow: hidden; }
+.terms > div { display: grid; grid-template-columns: minmax(140px, 32%) 1fr; gap: 14px; padding: 10px 16px; border-top: 1px solid var(--line); }
+.terms > div:first-child { border-top: 0; }
+.terms > div:nth-child(odd) { background: var(--surface); }
+.terms dt { font-family: var(--sans); font-weight: 600; }
+.terms dd { margin: 0; }
+.prose ul.when { margin: 0 0 20px; }
+.prose ul.when li { margin-bottom: 8px; }
+.vs-en { border-left: 4px solid var(--der, #2B59D9); }
+@media (max-width: 600px) { .terms > div { grid-template-columns: 1fr; gap: 2px; } }
