@@ -22,8 +22,8 @@ window.TBL = function (s) {
 window.PRACTICE = function (intro, tasks, answers) {
   var t = tasks.trim().split('\n').map(function (l) { return '<li>' + l.trim() + '</li>'; }).join('');
   var a = answers.trim().split('\n').map(function (l) { return '<li>' + l.trim() + '</li>'; }).join('');
-  return '<section class="practice"><h2 id="uebung">Übung</h2><p>' + intro + '</p><ol>' + t +
-    '</ol><details><summary>Lösungen zeigen</summary><ol>' + a + '</ol></details></section>';
+  return '<section class="practice"><h2 id="practice">Practice</h2><p>' + intro + '</p><ol>' + t +
+    '</ol><details><summary>Show answers</summary><ol>' + a + '</ol></details></section>';
 };
 
 window.MISTAKE = function (wrong, right, why) {

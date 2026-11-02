@@ -2,14 +2,14 @@
   'use strict';
 
   var LEVELS = [
-    { code: 'A1', name: 'Anfänger', en: 'Beginner', desc: 'Introduce yourself, ask simple questions, talk about everyday things.' },
-    { code: 'A2', name: 'Grundlagen', en: 'Elementary', desc: 'Talk about the past, give reasons, describe people and places.' },
-    { code: 'B1', name: 'Mittelstufe', en: 'Intermediate', desc: 'Tell stories, explain opinions, handle most situations at work and on the road.' },
-    { code: 'B2', name: 'Gute Mittelstufe', en: 'Upper intermediate', desc: 'Argue clearly, understand complex texts, write formally.' },
-    { code: 'C1', name: 'Fortgeschritten', en: 'Advanced', desc: 'Academic and professional German: nominal style, nuance, precision.' },
-    { code: 'C2', name: 'Exzellent', en: 'Proficient', desc: 'Style, register and idiom close to a native speaker.' }
+    { code: 'A1', name: 'Beginner', en: 'Anfänger', desc: 'Introduce yourself, ask simple questions, talk about everyday things.' },
+    { code: 'A2', name: 'Elementary', en: 'Grundlagen', desc: 'Talk about the past, give reasons, describe people and places.' },
+    { code: 'B1', name: 'Intermediate', en: 'Mittelstufe', desc: 'Tell stories, explain opinions, handle most situations at work and on the road.' },
+    { code: 'B2', name: 'Upper intermediate', en: 'Gute Mittelstufe', desc: 'Argue clearly, understand complex texts, write formally.' },
+    { code: 'C1', name: 'Advanced', en: 'Fortgeschritten', desc: 'Academic and professional German: nominal style, nuance, precision.' },
+    { code: 'C2', name: 'Proficient', en: 'Exzellent', desc: 'Style, register and idiom close to a native speaker.' }
   ];
-  var TYPE_NAMES = { N: 'Nomen', V: 'Verb', A: 'Adjektiv' };
+  var TYPE_NAMES = { N: 'Noun', V: 'Verb', A: 'Adjective' };
   var INTERVAL_DAYS = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 16 };
   var DAY = 86400000;
   var main = document.getElementById('main');
@@ -48,7 +48,7 @@
     return esc(e.word);
   }
   function formsText(e) {
-    if (e.type === 'N') return e.art === 'pl' ? 'nur Plural' : (e.f1 === '—' ? 'kein Plural' : 'die ' + e.f1);
+    if (e.type === 'N') return e.art === 'pl' ? 'plural only' : (e.f1 === '—' ? 'no plural' : 'die ' + e.f1);
     if (e.type === 'V') return e.f1 + ', ' + e.f2;
     return e.f1 === '—' ? '—' : e.f1 + ', ' + e.f2;
   }
@@ -114,7 +114,7 @@
     else if (p[0] === 'thema') { setNav('grammatik'); topicPage(p[1]); }
     else if (p[0] === 'wortschatz') { setNav('wortschatz'); vocabPage(r.q); }
     else if (p[0] === 'karteikarten') { setNav('karteikarten'); flashPage(r.q); }
-    else { setNav(''); main.innerHTML = '<div class="page-head"><h1>Seite nicht gefunden</h1><p class="sub">This page does not exist. <a href="#/">Go to the start page</a>.</p></div>'; }
+    else { setNav(''); main.innerHTML = '<div class="page-head"><h1>Page not found</h1><p class="sub">This page does not exist. <a href="#/">Go to the start page</a>.</p></div>'; }
     window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', render);
@@ -136,20 +136,20 @@
     var steps = LEVELS.map(function (l) {
       var v = vocabFor(l.code), share = learnedShare(v);
       return '<a class="step" href="#/grammatik/' + l.code.toLowerCase() + '"><span class="code">' + l.code + '</span>' +
-        '<span class="name">' + l.name + '</span><span class="count">' + topicsFor(l.code).length + ' Themen, ' + v.length + ' Wörter</span>' +
-        '<span class="bar" title="' + share + '% der Wörter gelernt"><i style="width:' + share + '%"></i></span></a>';
+        '<span class="name">' + l.name + '</span><span class="count">' + topicsFor(l.code).length + ' topics, ' + v.length + ' words</span>' +
+        '<span class="bar" title="' + share + '% of words learned"><i style="width:' + share + '%"></i></span></a>';
     }).join('');
     main.innerHTML =
       '<section class="hero"><div><h1><span class="art-der">der</span><span class="art-die">die</span><span class="art-das">das</span></h1>' +
       '<p class="lede">German grammar explained in English, from your first sentence at A1 to confident, polished German at C2. With word lists and flashcards for every level.</p>' +
-      '<div class="hero-actions"><a class="btn primary" href="#/grammatik">Grammatik lernen</a><a class="btn" href="#/karteikarten">Karteikarten üben</a></div></div>' +
-      '<div class="gender-game" aria-live="polite"><h2>Der, die oder das? Choose the article.</h2><p class="gg-word" id="gg-word"></p><p class="gg-en" id="gg-en"></p>' +
+      '<div class="hero-actions"><a class="btn primary" href="#/grammatik">Learn grammar</a><a class="btn" href="#/karteikarten">Practise flashcards</a></div></div>' +
+      '<div class="gender-game" aria-live="polite"><h2>Der, die or das? Choose the article.</h2><p class="gg-word" id="gg-word"></p><p class="gg-en" id="gg-en"></p>' +
       '<div class="gg-choices"><button class="c-der" data-a="der">der</button><button class="c-die" data-a="die">die</button><button class="c-das" data-a="das">das</button></div>' +
       '<p class="gg-feedback" id="gg-fb"></p><p class="gg-score" id="gg-score"></p></div></section>' +
-      '<section><div class="section-head"><h2>Dein Weg von A1 bis C2</h2><p>Each step opens the grammar topics for that level.</p></div><div class="ladder">' + steps + '</div></section>' +
-      '<section class="tools"><div><h3>Grammatik</h3><p>Every topic has a short explanation, tables, example sentences with translations, typical mistakes and an exercise with answers.</p><a class="more" href="#/grammatik">Alle Themen</a></div>' +
-      '<div><h3>Wortschatz</h3><p>Nouns with article and plural, verbs with Präteritum and Perfekt, adjectives with Komparativ and Superlativ. Search in German or English.</p><a class="more" href="#/wortschatz">Wortliste öffnen</a></div>' +
-      '<div><h3>Karteikarten</h3><p>Flashcards that bring back the words you find hard more often and the easy ones less often. Your progress stays in this browser.</p><a class="more" href="#/karteikarten">Jetzt üben</a></div></section>';
+      '<section><div class="section-head"><h2>Your path from A1 to C2</h2><p>Each step opens the grammar topics for that level.</p></div><div class="ladder">' + steps + '</div></section>' +
+      '<section class="tools"><div><h3>Grammar</h3><p>Every topic has a short explanation, tables, example sentences with translations, typical mistakes and an exercise with answers.</p><a class="more" href="#/grammatik">All topics</a></div>' +
+      '<div><h3>Vocabulary</h3><p>Nouns with article and plural, verbs with Präteritum and Perfekt, adjectives with Komparativ and Superlativ. Search in German or English.</p><a class="more" href="#/wortschatz">Open the word list</a></div>' +
+      '<div><h3>Flashcards</h3><p>Flip cards or type your answers and get them checked. Hard words come back more often, easy ones less often. Your progress stays in this browser.</p><a class="more" href="#/karteikarten">Start practising</a></div></section>';
     genderGame();
   }
 
@@ -170,8 +170,8 @@
       if (ok) score++;
       btns.forEach(function (b) { if (b.dataset.a === current.art) b.classList.add('right'); else b.classList.add('wrong'); });
       w.innerHTML = artHtml(current.art) + ' ' + esc(current.word);
-      fb.textContent = ok ? 'Richtig!' : 'Leider falsch. It is ' + current.art + ' ' + current.word + '.';
-      sc.textContent = score + ' von ' + total + ' richtig';
+      fb.textContent = ok ? 'Correct!' : 'Not quite. It is ' + current.art + ' ' + current.word + '.';
+      sc.textContent = score + ' of ' + total + ' correct';
       setTimeout(next, ok ? 900 : 1800);
     }
     btns.forEach(function (b) { b.addEventListener('click', function () { choose(b.dataset.a); }); });
@@ -188,35 +188,35 @@
       }).join('');
       return '<section class="level-block" id="lvl-' + l.code + '"><h2><span class="level-tag">' + l.code + '</span>' + l.name + ' <small style="font-weight:400;color:var(--muted);font-size:17px;margin-left:8px">' + l.en + '</small></h2>' +
         '<p class="desc">' + l.desc + '</p><ul class="topic-list">' + (items || '<li class="empty">Topics for this level are coming soon.</li>') + '</ul>' +
-        '<div class="level-links"><a class="btn" href="#/wortschatz?level=' + l.code + '">Wortschatz ' + l.code + '</a><a class="btn" href="#/karteikarten?level=' + l.code + '">Karteikarten ' + l.code + '</a></div></section>';
+        '<div class="level-links"><a class="btn" href="#/wortschatz?level=' + l.code + '">Vocabulary ' + l.code + '</a><a class="btn" href="#/karteikarten?level=' + l.code + '">Flashcards ' + l.code + '</a></div></section>';
     }).join('');
     var levelNav = LEVELS.map(function (l) {
       return '<a class="chip" aria-pressed="' + (only === l.code) + '" href="#/grammatik/' + l.code.toLowerCase() + '" style="text-decoration:none">' + l.code + '</a>';
     }).join('');
-    document.title = (only ? 'Grammatik ' + only : 'Grammatik') + ' | Deutsch Schritt für Schritt';
-    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>' + (only ? 'Grammatik ' + only : 'Grammatik A1 bis C2') + '</h1>' +
+    document.title = (only ? 'Grammar ' + only : 'Grammar') + ' | Deutsch Schritt für Schritt';
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>' + (only ? 'Grammar ' + only : 'Grammar from A1 to C2') + '</h1>' +
       '<p class="sub">Choose a topic. Each one explains the rule in English, shows it in German sentences and ends with an exercise.</p></div>' +
-      '<div class="chips" style="margin-bottom:28px"><a class="chip" aria-pressed="' + (!only) + '" href="#/grammatik" style="text-decoration:none">Alle Niveaus</a>' + levelNav + '</div>' + blocks;
+      '<div class="chips" style="margin-bottom:28px"><a class="chip" aria-pressed="' + (!only) + '" href="#/grammatik" style="text-decoration:none">All levels</a>' + levelNav + '</div>' + blocks;
   }
 
   function topicPage(id) {
     var all = window.GRAMMAR, i = all.findIndex(function (t) { return t.id === id; });
-    if (i < 0) { main.innerHTML = '<div class="page-head"><h1>Thema nicht gefunden</h1><p class="sub"><a href="#/grammatik">Back to all topics</a></p></div>'; return; }
+    if (i < 0) { main.innerHTML = '<div class="page-head"><h1>Topic not found</h1><p class="sub"><a href="#/grammatik">Back to all topics</a></p></div>'; return; }
     var t = all[i], prev = all[i - 1], next = all[i + 1];
     document.title = t.title + ' (' + t.level + ') | Deutsch Schritt für Schritt';
-    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/grammatik">Grammatik</a> / <a href="#/grammatik/' + t.level.toLowerCase() + '">' + t.level + '</a></p>' +
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/grammatik">Grammar</a> / <a href="#/grammatik/' + t.level.toLowerCase() + '">' + t.level + '</a></p>' +
       '<h1><span class="level-tag">' + t.level + '</span>' + t.title + '</h1><p class="sub"><strong style="font-family:var(--sans);font-weight:500;color:var(--ink)">' + t.de + '</strong><br>' + t.summary + '</p></div>' +
       '<div class="topic-layout"><article class="prose" id="prose">' + t.body + '</article><aside class="toc" id="toc"></aside></div>' +
-      '<nav class="pager" aria-label="Weitere Themen">' +
-      (prev ? '<a href="#/thema/' + prev.id + '"><small>Vorheriges Thema</small>' + prev.level + ': ' + prev.title + '</a>' : '<span></span>') +
-      (next ? '<a class="next" href="#/thema/' + next.id + '"><small>Nächstes Thema</small>' + next.level + ': ' + next.title + '</a>' : '') + '</nav>';
+      '<nav class="pager" aria-label="More topics">' +
+      (prev ? '<a href="#/thema/' + prev.id + '"><small>Previous topic</small>' + prev.level + ': ' + prev.title + '</a>' : '<span></span>') +
+      (next ? '<a class="next" href="#/thema/' + next.id + '"><small>Next topic</small>' + next.level + ': ' + next.title + '</a>' : '') + '</nav>';
     var hs = main.querySelectorAll('#prose h2');
-    var toc = '<h2>Auf dieser Seite</h2><ol>';
+    var toc = '<h2>On this page</h2><ol>';
     hs.forEach(function (h, k) {
       if (!h.id) h.id = 'abschnitt-' + k;
       toc += '<li><a href="#" data-target="' + h.id + '">' + h.textContent + '</a></li>';
     });
-    toc += '</ol><a class="btn" href="#/karteikarten?level=' + t.level + '">Karteikarten ' + t.level + '</a>';
+    toc += '</ol><a class="btn" href="#/karteikarten?level=' + t.level + '">Flashcards ' + t.level + '</a>';
     var tocEl = document.getElementById('toc');
     tocEl.innerHTML = toc;
     tocEl.addEventListener('click', function (ev) {
@@ -235,13 +235,13 @@
   }
   function vocabPage(q) {
     var state = { level: q.level || 'all', type: q.type || 'all', text: '' };
-    document.title = 'Wortschatz | Deutsch Schritt für Schritt';
-    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Wortschatz</h1><p class="sub">' + VOCAB.length +
+    document.title = 'Vocabulary | Deutsch Schritt für Schritt';
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Vocabulary</h1><p class="sub">' + VOCAB.length +
       ' words from A1 to C2. Nouns show their article in colour: <span class="art art-der">der</span>, <span class="art art-die">die</span>, <span class="art art-das">das</span>.</p></div>' +
-      '<div class="filters"><div class="fgroup"><span>Niveau</span>' + chipRow('level', [['all', 'Alle']].concat(LEVELS.map(function (l) { return [l.code, l.code]; })), state.level) + '</div>' +
-      '<div class="fgroup"><span>Wortart</span>' + chipRow('type', [['all', 'Alle'], ['N', 'Nomen'], ['V', 'Verben'], ['A', 'Adjektive']], state.type) + '</div>' +
-      '<div class="fgroup"><label for="vsearch"><span style="font-size:14px;color:var(--muted)">Suchen</span></label><input id="vsearch" class="search" type="search" placeholder="Deutsch oder English" autocomplete="off"></div></div>' +
-      '<p class="vcount" id="vcount"></p><div style="overflow-x:auto"><table class="vtable"><thead><tr><th>Wort</th><th>Formen</th><th>English</th><th class="hide-s">Niveau</th></tr></thead><tbody id="vbody"></tbody></table></div>';
+      '<div class="filters"><div class="fgroup"><span>Level</span>' + chipRow('level', [['all', 'All']].concat(LEVELS.map(function (l) { return [l.code, l.code]; })), state.level) + '</div>' +
+      '<div class="fgroup"><span>Word type</span>' + chipRow('type', [['all', 'All'], ['N', 'Nouns'], ['V', 'Verbs'], ['A', 'Adjectives']], state.type) + '</div>' +
+      '<div class="fgroup"><label for="vsearch"><span style="font-size:14px;color:var(--muted)">Search</span></label><input id="vsearch" class="search" type="search" placeholder="German or English" autocomplete="off"></div></div>' +
+      '<p class="vcount" id="vcount"></p><div style="overflow-x:auto"><table class="vtable"><thead><tr><th>Word</th><th>Forms</th><th>English</th><th class="hide-s">Level</th></tr></thead><tbody id="vbody"></tbody></table></div>';
     var body = document.getElementById('vbody'), count = document.getElementById('vcount');
     function draw() {
       var t = norm(state.text);
@@ -251,10 +251,10 @@
         if (t && norm(e.word).indexOf(t) < 0 && norm(e.en).indexOf(t) < 0) return false;
         return true;
       });
-      count.textContent = rows.length + (rows.length === 1 ? ' Wort' : ' Wörter');
+      count.textContent = rows.length + (rows.length === 1 ? ' word' : ' words');
       body.innerHTML = rows.length ? rows.map(function (e) {
         return '<tr><td class="w">' + wordHtml(e) + '</td><td class="f">' + esc(formsText(e)) + '</td><td class="e">' + esc(e.en) + '</td><td class="l hide-s">' + e.level + '</td></tr>';
-      }).join('') : '<tr><td colspan="4" class="empty">No words match. Try another spelling or choose "Alle".</td></tr>';
+      }).join('') : '<tr><td colspan="4" class="empty">No words match. Try another spelling or choose "All".</td></tr>';
     }
     main.querySelectorAll('.chip[data-group]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -274,8 +274,8 @@
     if (!saved.mode) saved.mode = 'flip';
     if (saved.forms === undefined) saved.forms = true;
     var s = saved;
-    document.title = 'Karteikarten | Deutsch Schritt für Schritt';
-    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Karteikarten</h1><p class="sub">Turn the cards over and rate yourself, or type your answers and let the site check them. Words you miss come back sooner; words you know wait longer.</p></div>' +
+    document.title = 'Flashcards | Deutsch Schritt für Schritt';
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Flashcards</h1><p class="sub">Turn the cards over and rate yourself, or type your answers and let the site check them. Words you miss come back sooner; words you know wait longer.</p></div>' +
       '<div class="fc-wrap"><aside class="fc-setup" id="setup"></aside><section class="fc-stage" id="stage" aria-live="polite"></section></div>';
     var setup = document.getElementById('setup'), stage = document.getElementById('stage');
 
@@ -293,15 +293,15 @@
           return '<button class="chip" data-multi="' + name + '" data-val="' + o[0] + '" aria-pressed="' + (arr.indexOf(o[0]) > -1) + '">' + o[1] + '</button>';
         }).join('') + '</div>';
       }
-      setup.innerHTML = '<div class="fgroup"><span>Niveau</span>' + multi('levels', LEVELS.map(function (l) { return [l.code, l.code]; }), s.levels) + '</div>' +
-        '<div class="fgroup"><span>Wortart</span>' + multi('types', [['N', 'Nomen'], ['V', 'Verben'], ['A', 'Adjektive']], s.types) + '</div>' +
-        '<div class="fgroup"><span>Übungsart</span><div class="chips"><button class="chip" data-mode="flip" aria-pressed="' + (s.mode === 'flip') + '">Karten umdrehen</button><button class="chip" data-mode="type" aria-pressed="' + (s.mode === 'type') + '">Antwort eintippen</button></div></div>' +
-        (s.mode === 'type' ? '<div class="fgroup"><span>Formen abfragen</span><div class="chips"><button class="chip" data-forms="1" aria-pressed="' + s.forms + '">Wort + Formen</button><button class="chip" data-forms="0" aria-pressed="' + !s.forms + '">Nur das Wort</button></div></div>' : '') +
-        '<div class="fgroup"><span>Richtung</span><div class="chips"><button class="chip" data-dir="de" aria-pressed="' + (s.dir === 'de') + '">Deutsch zuerst</button><button class="chip" data-dir="en" aria-pressed="' + (s.dir === 'en') + '">English first</button></div></div>' +
-        '<div class="fgroup"><span>Neue Karten pro Runde</span><div class="chips">' + [10, 20, 40].map(function (n) { return '<button class="chip" data-per="' + n + '" aria-pressed="' + (s.perSession === n) + '">' + n + '</button>'; }).join('') + '</div></div>' +
-        '<div class="fc-stats">' + p.length + ' Karten ausgewählt: ' + fresh + ' neu, ' + due + ' fällig.<div class="boxes">' +
-        boxes.map(function (b, k) { return '<div title="Fach ' + (k + 1) + '"><b>' + b + '</b>Fach ' + (k + 1) + '</div>'; }).join('') + '</div></div>' +
-        '<button class="btn" id="reset" style="align-self:flex-start;font-size:14px;padding:9px 14px">Fortschritt für diese Auswahl löschen</button>';
+      setup.innerHTML = '<div class="fgroup"><span>Level</span>' + multi('levels', LEVELS.map(function (l) { return [l.code, l.code]; }), s.levels) + '</div>' +
+        '<div class="fgroup"><span>Word type</span>' + multi('types', [['N', 'Nouns'], ['V', 'Verbs'], ['A', 'Adjectives']], s.types) + '</div>' +
+        '<div class="fgroup"><span>Practice mode</span><div class="chips"><button class="chip" data-mode="flip" aria-pressed="' + (s.mode === 'flip') + '">Flip cards</button><button class="chip" data-mode="type" aria-pressed="' + (s.mode === 'type') + '">Type answers</button></div></div>' +
+        (s.mode === 'type' ? '<div class="fgroup"><span>Also ask for</span><div class="chips"><button class="chip" data-forms="1" aria-pressed="' + s.forms + '">Word + forms</button><button class="chip" data-forms="0" aria-pressed="' + !s.forms + '">Word only</button></div></div>' : '') +
+        '<div class="fgroup"><span>Direction</span><div class="chips"><button class="chip" data-dir="de" aria-pressed="' + (s.dir === 'de') + '">German first</button><button class="chip" data-dir="en" aria-pressed="' + (s.dir === 'en') + '">English first</button></div></div>' +
+        '<div class="fgroup"><span>New cards per round</span><div class="chips">' + [10, 20, 40].map(function (n) { return '<button class="chip" data-per="' + n + '" aria-pressed="' + (s.perSession === n) + '">' + n + '</button>'; }).join('') + '</div></div>' +
+        '<div class="fc-stats">' + p.length + ' cards selected: ' + fresh + ' new, ' + due + ' due.<div class="boxes">' +
+        boxes.map(function (b, k) { return '<div title="Box ' + (k + 1) + '"><b>' + b + '</b>Box ' + (k + 1) + '</div>'; }).join('') + '</div></div>' +
+        '<button class="btn" id="reset" style="align-self:flex-start;font-size:14px;padding:9px 14px">Reset progress for this selection</button>';
       setup.querySelectorAll('[data-multi]').forEach(function (b) {
         b.addEventListener('click', function () {
           var arr = s[b.dataset.multi], v = b.dataset.val, k = arr.indexOf(v);
@@ -338,11 +338,11 @@
       stopKeys();
       var n = buildQueue().length;
       stage.innerHTML = n
-        ? '<div class="done"><h2>' + n + ' Karten bereit</h2><p>' + (s.mode === 'type'
+        ? '<div class="done"><h2>' + n + ' cards ready</h2><p>' + (s.mode === 'type'
             ? 'Type your answer and press Enter. Small typos count as almost right, and ae, oe, ue and ss work in place of ä, ö, ü and ß.'
             : 'Click a card or press the space bar to turn it over, then rate how well you knew it.') +
-          '</p><button class="btn primary" id="start">Runde starten</button></div>'
-        : '<div class="done"><h2>Alles erledigt</h2><p>No cards are due in this selection. Choose another level, or come back tomorrow.</p></div>';
+          '</p><button class="btn primary" id="start">Start round</button></div>'
+        : '<div class="done"><h2>All done</h2><p>No cards are due in this selection. Choose another level, or come back tomorrow.</p></div>';
       var b = document.getElementById('start');
       if (b) { b.addEventListener('click', session); b.focus(); }
     }
@@ -358,15 +358,15 @@
       var f = [];
       if (s.dir === 'de') f.push({ label: 'English', check: function (v) { return checkEn(v, e.en); }, answer: e.en });
       else {
-        if (e.type === 'N') f.push({ label: 'Artikel', article: true, answer: e.art === 'pl' ? 'die' : e.art });
-        f.push({ label: 'Deutsch', check: function (v) { return checkDe(v, [e.word, e.word.replace(/^sich /, '')]); }, answer: e.word });
+        if (e.type === 'N') f.push({ label: 'Article', article: true, answer: e.art === 'pl' ? 'die' : e.art });
+        f.push({ label: 'German', check: function (v) { return checkDe(v, [e.word, e.word.replace(/^sich /, '')]); }, answer: e.word });
       }
       if (s.forms) {
         if (e.type === 'N' && e.art !== 'pl' && e.f1 !== '—')
-          f.push({ label: 'Plural', hint: 'z. B. Männer', check: function (v) { return checkDe(v, [e.f1, 'die ' + e.f1]); }, answer: 'die ' + e.f1 });
+          f.push({ label: 'Plural', hint: 'e.g. Männer', check: function (v) { return checkDe(v, [e.f1, 'die ' + e.f1]); }, answer: 'die ' + e.f1 });
         if (e.type === 'V') {
-          f.push({ label: 'Präteritum', hint: 'er/sie/es …', check: function (v) { return checkDe(v, [e.f1, 'er ' + e.f1]); }, answer: e.f1 });
-          f.push({ label: 'Perfekt', hint: 'z. B. hat gemacht / ist gegangen', check: function (v) { return checkDe(v, [e.f2, 'er ' + e.f2]); }, answer: e.f2 });
+          f.push({ label: 'Präteritum', hint: 'er/sie/es form', check: function (v) { return checkDe(v, [e.f1, 'er ' + e.f1]); }, answer: e.f1 });
+          f.push({ label: 'Perfekt', hint: 'e.g. hat gemacht / ist gegangen', check: function (v) { return checkDe(v, [e.f2, 'er ' + e.f2]); }, answer: e.f2 });
         }
         if (e.type === 'A' && e.f1 !== '—') {
           f.push({ label: 'Komparativ', check: function (v) { return checkDe(v, [e.f1]); }, answer: e.f1 });
@@ -381,7 +381,7 @@
       stopKeys();
       function show() {
         if (!queue.length) {
-          stage.innerHTML = '<div class="done"><h2>Runde geschafft</h2><p>' + firstRight + ' von ' + Object.keys(seen).length + ' Karten beim ersten Versuch richtig. Your progress is saved.</p><button class="btn primary" id="again">Neue Runde</button></div>';
+          stage.innerHTML = '<div class="done"><h2>Round complete</h2><p>' + firstRight + ' of ' + Object.keys(seen).length + ' cards correct on the first try. Your progress is saved.</p><button class="btn primary" id="again">New round</button></div>';
           document.getElementById('again').addEventListener('click', function () { drawSetup(); idle(); });
           drawSetup();
           return;
@@ -392,20 +392,20 @@
         var pct = Math.round(doneCount / Math.max(total, 1) * 100);
         var inputs = fields.map(function (f, k) {
           if (f.article) {
-            return '<div class="tfield" data-k="' + k + '"><span class="tlabel">Artikel</span><div class="tart" role="group" aria-label="Artikel">' +
+            return '<div class="tfield" data-k="' + k + '"><span class="tlabel">Article</span><div class="tart" role="group" aria-label="Article">' +
               ['der', 'die', 'das'].map(function (a) { return '<button type="button" class="chip c-' + a + '" data-art="' + a + '" aria-pressed="false">' + a + '</button>'; }).join('') +
               '</div><span class="tsol"></span></div>';
           }
           return '<div class="tfield" data-k="' + k + '"><label class="tlabel" for="tin' + k + '">' + f.label + '</label>' +
             '<input class="tinput" id="tin' + k + '" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"' + (f.hint ? ' placeholder="' + f.hint + '"' : '') + '><span class="tsol"></span></div>';
         }).join('');
-        stage.innerHTML = '<div class="fc-progress"><span>' + doneCount + ' / ' + total + '</span><span class="track"><i style="width:' + pct + '%"></i></span><span>' + queue.length + ' übrig</span></div>' +
+        stage.innerHTML = '<div class="fc-progress"><span>' + doneCount + ' / ' + total + '</span><span class="track"><i style="width:' + pct + '%"></i></span><span>' + queue.length + ' left</span></div>' +
           '<form class="card typing' + g + '" id="tform" autocomplete="off"><span class="kind">' + TYPE_NAMES[cur.type] + '</span><span class="lvl">' + cur.level + '</span>' + prompt +
           '<div class="tfields">' + inputs + '</div>' +
-          '<div class="umlauts" aria-label="Sonderzeichen einfügen">' + ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'].map(function (c) { return '<button type="button" class="ukey" data-ch="' + c + '">' + c + '</button>'; }).join('') + '</div>' +
+          '<div class="umlauts" aria-label="Insert special characters">' + ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'].map(function (c) { return '<button type="button" class="ukey" data-ch="' + c + '">' + c + '</button>'; }).join('') + '</div>' +
           '<p class="verdict" id="verdict" role="status"></p>' +
-          '<div class="tactions" id="tactions"><button type="submit" class="btn primary" id="tcheck">Prüfen</button><button type="button" class="btn" id="tskip">Weiß ich nicht</button></div></form>' +
-          '<p class="keys"><kbd>Enter</kbd> prüfen und weiter</p>';
+          '<div class="tactions" id="tactions"><button type="submit" class="btn primary" id="tcheck">Check</button><button type="button" class="btn" id="tskip">Show answer</button></div></form>' +
+          '<p class="keys"><kbd>Enter</kbd> check, then next</p>';
         var form = document.getElementById('tform');
         form.querySelectorAll('.tinput').forEach(function (inp) { inp.addEventListener('focus', function () { lastInput = inp; }); });
         form.querySelectorAll('[data-art]').forEach(function (b) {
@@ -448,7 +448,7 @@
             inp.disabled = true;
           }
           box.classList.add('r-' + res);
-          if (res !== 'ok') box.querySelector('.tsol').textContent = (res === 'almost' ? 'Richtig geschrieben: ' : 'Richtig: ') + f.answer;
+          if (res !== 'ok') box.querySelector('.tsol').textContent = (res === 'almost' ? 'Correct spelling: ' : 'Answer: ') + f.answer;
           return res;
         });
         var bad = results.filter(function (r) { return r === 'bad'; }).length;
@@ -456,16 +456,16 @@
         lastCorrect = bad === 0;
         var v = document.getElementById('verdict');
         v.className = 'verdict ' + (bad ? 'v-bad' : almost ? 'v-almost' : 'v-ok');
-        v.textContent = gaveUp ? 'Hier ist die Lösung. Die Karte kommt gleich noch einmal.'
-          : bad ? (bad === results.length ? 'Leider falsch. Die Karte kommt gleich noch einmal.' : 'Teilweise richtig. Die Karte kommt gleich noch einmal.')
-          : almost ? 'Fast richtig! Achte auf die Schreibweise.' : 'Richtig!';
+        v.textContent = gaveUp ? 'Here is the answer. This card will come back shortly.'
+          : bad ? (bad === results.length ? 'Not quite. This card will come back shortly.' : 'Partly correct. This card will come back shortly.')
+          : almost ? 'Almost! Check the spelling.' : 'Correct!';
         curFirst = !seen[cur.id];
         seen[cur.id] = true;
         if (curFirst && lastCorrect) firstRight++;
         if (s.dir === 'en' && cur.type === 'N' && cur.art !== 'pl') form.classList.add('g-' + cur.art);
         var actions = document.getElementById('tactions');
-        actions.innerHTML = '<button type="submit" class="btn primary" id="tnext">Weiter</button>' +
-          (bad && !gaveUp ? '<button type="button" class="btn" id="tover">Ich hatte recht</button>' : '');
+        actions.innerHTML = '<button type="submit" class="btn primary" id="tnext">Next</button>' +
+          (bad && !gaveUp ? '<button type="button" class="btn" id="tover">I was right</button>' : '');
         document.getElementById('tnext').focus({ preventScroll: true });
         var over = document.getElementById('tover');
         if (over) over.addEventListener('click', function () { lastCorrect = true; if (curFirst) firstRight++; next(); });
@@ -486,7 +486,7 @@
       function show() {
         if (!queue.length) {
           stopKeys();
-          stage.innerHTML = '<div class="done"><h2>Runde geschafft</h2><p>You reviewed ' + doneCount + ' cards. Your progress is saved.</p><button class="btn primary" id="again">Neue Runde</button></div>';
+          stage.innerHTML = '<div class="done"><h2>Round complete</h2><p>You reviewed ' + doneCount + ' cards. Your progress is saved.</p><button class="btn primary" id="again">New round</button></div>';
           document.getElementById('again').addEventListener('click', function () { drawSetup(); idle(); });
           drawSetup();
           return;
@@ -495,11 +495,11 @@
         var g = cur.type === 'N' && cur.art !== 'pl' ? ' g-' + cur.art : '';
         var front = s.dir === 'de' ? '<div class="front">' + wordHtml(cur) + '</div>' : '<div class="front en">' + esc(cur.en) + '</div>';
         var pct = Math.round(doneCount / Math.max(total, 1) * 100);
-        stage.innerHTML = '<div class="fc-progress"><span>' + doneCount + ' / ' + total + '</span><span class="track"><i style="width:' + pct + '%"></i></span><span>' + queue.length + ' übrig</span></div>' +
-          '<div class="card' + (s.dir === 'de' ? g : '') + '" id="card" role="button" tabindex="0" aria-label="Karte umdrehen"><span class="kind">' + TYPE_NAMES[cur.type] + '</span><span class="lvl">' + cur.level + '</span>' + front +
-          '<div class="back" id="back" hidden></div><span class="hint">Klicken oder Leertaste zum Umdrehen</span></div>' +
-          '<div class="grade" id="grade" hidden><button class="g-again" data-g="1">Nochmal<small>1, comes back soon</small></button><button class="g-good" data-g="2">Gut<small>2, see it later</small></button><button class="g-easy" data-g="3">Leicht<small>3, much later</small></button></div>' +
-          '<p class="keys"><kbd>Leertaste</kbd> umdrehen &nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> bewerten</p>';
+        stage.innerHTML = '<div class="fc-progress"><span>' + doneCount + ' / ' + total + '</span><span class="track"><i style="width:' + pct + '%"></i></span><span>' + queue.length + ' left</span></div>' +
+          '<div class="card' + (s.dir === 'de' ? g : '') + '" id="card" role="button" tabindex="0" aria-label="Turn card over"><span class="kind">' + TYPE_NAMES[cur.type] + '</span><span class="lvl">' + cur.level + '</span>' + front +
+          '<div class="back" id="back" hidden></div><span class="hint">Click or press space to turn over</span></div>' +
+          '<div class="grade" id="grade" hidden><button class="g-again" data-g="1">Again<small>1, comes back soon</small></button><button class="g-good" data-g="2">Good<small>2, see it later</small></button><button class="g-easy" data-g="3">Easy<small>3, much later</small></button></div>' +
+          '<p class="keys"><kbd>Space</kbd> turn over &nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> rate</p>';
         var card = document.getElementById('card');
         card.addEventListener('click', flip);
         card.focus({ preventScroll: true });
