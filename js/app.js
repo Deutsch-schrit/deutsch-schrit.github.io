@@ -54,6 +54,41 @@
   }
   function norm(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss'); }
 
+  /* ---------- answer checking for the typing mode ---------- */
+  function lev(a, b) {
+    var m = a.length, n = b.length, d = [], i, j;
+    for (i = 0; i <= m; i++) d[i] = [i];
+    for (j = 0; j <= n; j++) d[0][j] = j;
+    for (i = 1; i <= m; i++) for (j = 1; j <= n; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[m][n];
+  }
+  /* German: case-insensitive, ä = ae, ß = ss, ignores punctuation and bracketed hints */
+  function gnorm(x) {
+    return String(x).toLowerCase().replace(/\(.*?\)/g, '').replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
+      .replace(/ß/g, 'ss').replace(/[.!?,;:"„“]/g, '').replace(/\s+/g, ' ').trim();
+  }
+  function closeEnough(a, b) { return b.length >= 4 && lev(a, b) <= (b.length >= 9 ? 2 : 1); }
+  /* returns 'ok', 'almost' (small typo) or 'bad' */
+  function checkDe(input, variants) {
+    var g = gnorm(input);
+    if (!g) return 'bad';
+    var vs = variants.map(gnorm);
+    if (vs.indexOf(g) > -1) return 'ok';
+    return vs.some(function (v) { return closeEnough(g, v); }) ? 'almost' : 'bad';
+  }
+  function enClean(x) {
+    return String(x).toLowerCase().replace(/\(.*?\)/g, '').replace(/[.!?"]/g, '').replace(/^\s*(to|the|a|an)\s+/, '').replace(/\s+/g, ' ').trim();
+  }
+  function checkEn(input, en) {
+    var g = enClean(input);
+    if (!g) return 'bad';
+    var opts = en.replace(/\(.*?\)/g, '').split(/[;,\/]/).map(enClean).filter(Boolean);
+    opts.push(enClean(en));
+    if (opts.indexOf(g) > -1) return 'ok';
+    return opts.some(function (v) { return closeEnough(g, v); }) ? 'almost' : 'bad';
+  }
+
   /* ---------- routing ---------- */
   function parseHash() {
     var h = location.hash.replace(/^#\/?/, '');
@@ -236,9 +271,11 @@
   function flashPage(q) {
     var saved = load('dsfs-settings', { levels: ['A1'], types: ['N', 'V', 'A'], dir: 'de', perSession: 20 });
     if (q.level) saved.levels = [q.level];
+    if (!saved.mode) saved.mode = 'flip';
+    if (saved.forms === undefined) saved.forms = true;
     var s = saved;
     document.title = 'Karteikarten | Deutsch Schritt für Schritt';
-    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Karteikarten</h1><p class="sub">Choose what to practise, then rate each card. Words you miss come back sooner; words you know wait longer.</p></div>' +
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Karteikarten</h1><p class="sub">Turn the cards over and rate yourself, or type your answers and let the site check them. Words you miss come back sooner; words you know wait longer.</p></div>' +
       '<div class="fc-wrap"><aside class="fc-setup" id="setup"></aside><section class="fc-stage" id="stage" aria-live="polite"></section></div>';
     var setup = document.getElementById('setup'), stage = document.getElementById('stage');
 
@@ -258,6 +295,8 @@
       }
       setup.innerHTML = '<div class="fgroup"><span>Niveau</span>' + multi('levels', LEVELS.map(function (l) { return [l.code, l.code]; }), s.levels) + '</div>' +
         '<div class="fgroup"><span>Wortart</span>' + multi('types', [['N', 'Nomen'], ['V', 'Verben'], ['A', 'Adjektive']], s.types) + '</div>' +
+        '<div class="fgroup"><span>Übungsart</span><div class="chips"><button class="chip" data-mode="flip" aria-pressed="' + (s.mode === 'flip') + '">Karten umdrehen</button><button class="chip" data-mode="type" aria-pressed="' + (s.mode === 'type') + '">Antwort eintippen</button></div></div>' +
+        (s.mode === 'type' ? '<div class="fgroup"><span>Formen abfragen</span><div class="chips"><button class="chip" data-forms="1" aria-pressed="' + s.forms + '">Wort + Formen</button><button class="chip" data-forms="0" aria-pressed="' + !s.forms + '">Nur das Wort</button></div></div>' : '') +
         '<div class="fgroup"><span>Richtung</span><div class="chips"><button class="chip" data-dir="de" aria-pressed="' + (s.dir === 'de') + '">Deutsch zuerst</button><button class="chip" data-dir="en" aria-pressed="' + (s.dir === 'en') + '">English first</button></div></div>' +
         '<div class="fgroup"><span>Neue Karten pro Runde</span><div class="chips">' + [10, 20, 40].map(function (n) { return '<button class="chip" data-per="' + n + '" aria-pressed="' + (s.perSession === n) + '">' + n + '</button>'; }).join('') + '</div></div>' +
         '<div class="fc-stats">' + p.length + ' Karten ausgewählt: ' + fresh + ' neu, ' + due + ' fällig.<div class="boxes">' +
@@ -271,6 +310,8 @@
         });
       });
       setup.querySelectorAll('[data-dir]').forEach(function (b) { b.addEventListener('click', function () { s.dir = b.dataset.dir; save('dsfs-settings', s); drawSetup(); idle(); }); });
+      setup.querySelectorAll('[data-mode]').forEach(function (b) { b.addEventListener('click', function () { s.mode = b.dataset.mode; save('dsfs-settings', s); drawSetup(); idle(); }); });
+      setup.querySelectorAll('[data-forms]').forEach(function (b) { b.addEventListener('click', function () { s.forms = b.dataset.forms === '1'; save('dsfs-settings', s); drawSetup(); idle(); }); });
       setup.querySelectorAll('[data-per]').forEach(function (b) { b.addEventListener('click', function () { s.perSession = +b.dataset.per; save('dsfs-settings', s); drawSetup(); idle(); }); });
       var resetBtn = document.getElementById('reset');
       resetBtn.addEventListener('click', function () {
@@ -297,13 +338,150 @@
       stopKeys();
       var n = buildQueue().length;
       stage.innerHTML = n
-        ? '<div class="done"><h2>' + n + ' Karten bereit</h2><p>Click a card or press the space bar to turn it over, then rate how well you knew it.</p><button class="btn primary" id="start">Runde starten</button></div>'
+        ? '<div class="done"><h2>' + n + ' Karten bereit</h2><p>' + (s.mode === 'type'
+            ? 'Type your answer and press Enter. Small typos count as almost right, and ae, oe, ue and ss work in place of ä, ö, ü and ß.'
+            : 'Click a card or press the space bar to turn it over, then rate how well you knew it.') +
+          '</p><button class="btn primary" id="start">Runde starten</button></div>'
         : '<div class="done"><h2>Alles erledigt</h2><p>No cards are due in this selection. Choose another level, or come back tomorrow.</p></div>';
       var b = document.getElementById('start');
       if (b) { b.addEventListener('click', session); b.focus(); }
     }
 
+    function schedule(card, correct) {
+      var r = progress[card.id] || { box: 0 };
+      var box = correct ? Math.min(5, Math.max(r.box, 1) + 1) : 1;
+      progress[card.id] = { box: box, due: Date.now() + INTERVAL_DAYS[box] * DAY };
+      save('dsfs-progress', progress);
+    }
+
+    function fieldsFor(e) {
+      var f = [];
+      if (s.dir === 'de') f.push({ label: 'English', check: function (v) { return checkEn(v, e.en); }, answer: e.en });
+      else {
+        if (e.type === 'N') f.push({ label: 'Artikel', article: true, answer: e.art === 'pl' ? 'die' : e.art });
+        f.push({ label: 'Deutsch', check: function (v) { return checkDe(v, [e.word, e.word.replace(/^sich /, '')]); }, answer: e.word });
+      }
+      if (s.forms) {
+        if (e.type === 'N' && e.art !== 'pl' && e.f1 !== '—')
+          f.push({ label: 'Plural', hint: 'z. B. Männer', check: function (v) { return checkDe(v, [e.f1, 'die ' + e.f1]); }, answer: 'die ' + e.f1 });
+        if (e.type === 'V') {
+          f.push({ label: 'Präteritum', hint: 'er/sie/es …', check: function (v) { return checkDe(v, [e.f1, 'er ' + e.f1]); }, answer: e.f1 });
+          f.push({ label: 'Perfekt', hint: 'z. B. hat gemacht / ist gegangen', check: function (v) { return checkDe(v, [e.f2, 'er ' + e.f2]); }, answer: e.f2 });
+        }
+        if (e.type === 'A' && e.f1 !== '—') {
+          f.push({ label: 'Komparativ', check: function (v) { return checkDe(v, [e.f1]); }, answer: e.f1 });
+          f.push({ label: 'Superlativ', hint: 'am …sten', check: function (v) { return checkDe(v, [e.f2, e.f2.replace(/^am /, '')]); }, answer: e.f2 });
+        }
+      }
+      return f;
+    }
+
+    function typeSession() {
+      var queue = buildQueue(), total = queue.length, doneCount = 0, firstRight = 0, seen = {}, cur, fields, lastInput = null;
+      stopKeys();
+      function show() {
+        if (!queue.length) {
+          stage.innerHTML = '<div class="done"><h2>Runde geschafft</h2><p>' + firstRight + ' von ' + Object.keys(seen).length + ' Karten beim ersten Versuch richtig. Your progress is saved.</p><button class="btn primary" id="again">Neue Runde</button></div>';
+          document.getElementById('again').addEventListener('click', function () { drawSetup(); idle(); });
+          drawSetup();
+          return;
+        }
+        cur = queue[0]; fields = fieldsFor(cur);
+        var g = s.dir === 'de' && cur.type === 'N' && cur.art !== 'pl' ? ' g-' + cur.art : '';
+        var prompt = s.dir === 'de' ? '<div class="front">' + wordHtml(cur) + '</div>' : '<div class="front en">' + esc(cur.en) + '</div>';
+        var pct = Math.round(doneCount / Math.max(total, 1) * 100);
+        var inputs = fields.map(function (f, k) {
+          if (f.article) {
+            return '<div class="tfield" data-k="' + k + '"><span class="tlabel">Artikel</span><div class="tart" role="group" aria-label="Artikel">' +
+              ['der', 'die', 'das'].map(function (a) { return '<button type="button" class="chip c-' + a + '" data-art="' + a + '" aria-pressed="false">' + a + '</button>'; }).join('') +
+              '</div><span class="tsol"></span></div>';
+          }
+          return '<div class="tfield" data-k="' + k + '"><label class="tlabel" for="tin' + k + '">' + f.label + '</label>' +
+            '<input class="tinput" id="tin' + k + '" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"' + (f.hint ? ' placeholder="' + f.hint + '"' : '') + '><span class="tsol"></span></div>';
+        }).join('');
+        stage.innerHTML = '<div class="fc-progress"><span>' + doneCount + ' / ' + total + '</span><span class="track"><i style="width:' + pct + '%"></i></span><span>' + queue.length + ' übrig</span></div>' +
+          '<form class="card typing' + g + '" id="tform" autocomplete="off"><span class="kind">' + TYPE_NAMES[cur.type] + '</span><span class="lvl">' + cur.level + '</span>' + prompt +
+          '<div class="tfields">' + inputs + '</div>' +
+          '<div class="umlauts" aria-label="Sonderzeichen einfügen">' + ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'].map(function (c) { return '<button type="button" class="ukey" data-ch="' + c + '">' + c + '</button>'; }).join('') + '</div>' +
+          '<p class="verdict" id="verdict" role="status"></p>' +
+          '<div class="tactions" id="tactions"><button type="submit" class="btn primary" id="tcheck">Prüfen</button><button type="button" class="btn" id="tskip">Weiß ich nicht</button></div></form>' +
+          '<p class="keys"><kbd>Enter</kbd> prüfen und weiter</p>';
+        var form = document.getElementById('tform');
+        form.querySelectorAll('.tinput').forEach(function (inp) { inp.addEventListener('focus', function () { lastInput = inp; }); });
+        form.querySelectorAll('[data-art]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (form.dataset.checked) return;
+            form.querySelectorAll('[data-art]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+            var first = form.querySelector('.tinput'); if (first) first.focus();
+          });
+        });
+        form.querySelectorAll('.ukey').forEach(function (b) {
+          b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+          b.addEventListener('click', function () {
+            var inp = lastInput || form.querySelector('.tinput');
+            if (!inp || inp.disabled) return;
+            var a = inp.selectionStart, z = inp.selectionEnd;
+            inp.value = inp.value.slice(0, a) + b.dataset.ch + inp.value.slice(z);
+            inp.focus(); inp.setSelectionRange(a + 1, a + 1);
+          });
+        });
+        form.addEventListener('submit', function (ev) { ev.preventDefault(); if (form.dataset.checked) next(); else check(false); });
+        document.getElementById('tskip').addEventListener('click', function () { check(true); });
+        var firstInput = form.querySelector('.tinput');
+        if (firstInput && !fields[0].article) firstInput.focus({ preventScroll: true });
+        else form.querySelector('[data-art]').focus({ preventScroll: true });
+      }
+
+      var lastCorrect = false, curFirst = false;
+      function check(gaveUp) {
+        var form = document.getElementById('tform');
+        form.dataset.checked = '1';
+        var results = fields.map(function (f, k) {
+          var box = form.querySelector('.tfield[data-k="' + k + '"]'), res;
+          if (f.article) {
+            var chosen = form.querySelector('[data-art][aria-pressed="true"]');
+            res = !gaveUp && chosen && chosen.dataset.art === f.answer ? 'ok' : 'bad';
+            form.querySelectorAll('[data-art]').forEach(function (x) { x.disabled = true; });
+          } else {
+            var inp = box.querySelector('input');
+            res = gaveUp ? 'bad' : f.check(inp.value);
+            inp.disabled = true;
+          }
+          box.classList.add('r-' + res);
+          if (res !== 'ok') box.querySelector('.tsol').textContent = (res === 'almost' ? 'Richtig geschrieben: ' : 'Richtig: ') + f.answer;
+          return res;
+        });
+        var bad = results.filter(function (r) { return r === 'bad'; }).length;
+        var almost = results.filter(function (r) { return r === 'almost'; }).length;
+        lastCorrect = bad === 0;
+        var v = document.getElementById('verdict');
+        v.className = 'verdict ' + (bad ? 'v-bad' : almost ? 'v-almost' : 'v-ok');
+        v.textContent = gaveUp ? 'Hier ist die Lösung. Die Karte kommt gleich noch einmal.'
+          : bad ? (bad === results.length ? 'Leider falsch. Die Karte kommt gleich noch einmal.' : 'Teilweise richtig. Die Karte kommt gleich noch einmal.')
+          : almost ? 'Fast richtig! Achte auf die Schreibweise.' : 'Richtig!';
+        curFirst = !seen[cur.id];
+        seen[cur.id] = true;
+        if (curFirst && lastCorrect) firstRight++;
+        if (s.dir === 'en' && cur.type === 'N' && cur.art !== 'pl') form.classList.add('g-' + cur.art);
+        var actions = document.getElementById('tactions');
+        actions.innerHTML = '<button type="submit" class="btn primary" id="tnext">Weiter</button>' +
+          (bad && !gaveUp ? '<button type="button" class="btn" id="tover">Ich hatte recht</button>' : '');
+        document.getElementById('tnext').focus({ preventScroll: true });
+        var over = document.getElementById('tover');
+        if (over) over.addEventListener('click', function () { lastCorrect = true; if (curFirst) firstRight++; next(); });
+      }
+      function next() {
+        schedule(cur, lastCorrect);
+        queue.shift();
+        if (lastCorrect) doneCount++;
+        else { queue.splice(Math.min(3, queue.length), 0, cur); total = Math.max(total, doneCount + queue.length); }
+        show();
+      }
+      show();
+    }
+
     function session() {
+      if (s.mode === 'type') return typeSession();
       var queue = buildQueue(), total = queue.length, doneCount = 0, flipped = false, cur;
       function show() {
         if (!queue.length) {
