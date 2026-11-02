@@ -475,3 +475,5 @@ kbd { font-family: var(--sans); font-size: 12px; border: 1px solid var(--line); 
 .prose ul.when li { margin-bottom: 8px; }
 .vs-en { border-left: 4px solid var(--der, #2B59D9); }
 @media (max-width: 600px) { .terms > div { grid-template-columns: 1fr; gap: 2px; } }
+.topic-layout > * { min-width: 0; }
+.prose span.de { overflow-wrap: anywhere; }
