@@ -2,7 +2,7 @@
 
 German grammar explained in English from A1 to C2, with vocabulary lists and flashcards.
 
-Live site: https://deutsch-schrit.github.io/deutsch-schritt/
+Live site: https://deutsch-schrit.github.io/
 
 ## What is inside
 
