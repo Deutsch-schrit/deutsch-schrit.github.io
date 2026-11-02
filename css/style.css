@@ -477,3 +477,13 @@ kbd { font-family: var(--sans); font-size: 12px; border: 1px solid var(--line); 
 @media (max-width: 600px) { .terms > div { grid-template-columns: 1fr; gap: 2px; } }
 .topic-layout > * { min-width: 0; }
 .prose span.de { overflow-wrap: anywhere; }
+
+/* Labelled forms in the vocabulary table */
+.vtable td.f .fl { display: block; }
+.vtable td.f .fl + .fl { margin-top: 2px; }
+.vtable .flab { display: inline-block; min-width: 92px; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.vtable td.f .fl { white-space: nowrap; }
+@media (max-width: 600px) {
+  .vtable .flab { display: block; min-width: 0; font-size: 11px; }
+  .vtable td.f .fl + .fl { margin-top: 6px; }
+}

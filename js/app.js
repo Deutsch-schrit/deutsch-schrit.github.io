@@ -52,6 +52,13 @@
     if (e.type === 'V') return e.f1 + ', ' + e.f2;
     return e.f1 === '—' ? '—' : e.f1 + ', ' + e.f2;
   }
+  function formsHtml(e) {
+    function lab(name, val) { return '<span class="fl"><span class="flab">' + name + '</span> ' + esc(val) + '</span>'; }
+    if (e.type === 'N') return lab('Plural', formsText(e));
+    if (e.type === 'V') return lab('Präteritum', e.f1) + lab('Perfekt', e.f2);
+    if (e.f1 === '—') return '<span class="fl"><span class="flab">not compared</span></span>';
+    return lab('Komparativ', e.f1) + lab('Superlativ', e.f2);
+  }
   function norm(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss'); }
 
   /* ---------- answer checking for the typing mode ---------- */
@@ -423,7 +430,7 @@
       });
       count.textContent = rows.length + (rows.length === 1 ? ' word' : ' words');
       body.innerHTML = rows.length ? rows.map(function (e) {
-        return '<tr><td class="w">' + wordHtml(e) + '</td><td class="f">' + esc(formsText(e)) + '</td><td class="e">' + esc(e.en) + '</td><td class="l hide-s">' + e.level + '</td></tr>';
+        return '<tr><td class="w">' + wordHtml(e) + '</td><td class="f">' + formsHtml(e) + '</td><td class="e">' + esc(e.en) + '</td><td class="l hide-s">' + e.level + '</td></tr>';
       }).join('') : '<tr><td colspan="4" class="empty">No words match. Try another spelling or choose "All".</td></tr>';
     }
     main.querySelectorAll('.chip[data-group]').forEach(function (b) {
