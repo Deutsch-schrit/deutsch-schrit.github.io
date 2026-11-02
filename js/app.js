@@ -127,6 +127,7 @@
     else if (p[0] === 'wortschatz') { setNav('wortschatz'); vocabPage(r.q); }
     else if (p[0] === 'karteikarten') { setNav('karteikarten'); flashPage(r.q); }
     else if (p[0] === 'konjugation' && window.ConjUI) window.ConjUI.page(p[1], r.q);
+    else if (p[0] === 'datenschutz' && window.Consent) window.Consent.privacyPage();
     else if (p[0] === 'pruefungen' && window.ExamUI) window.ExamUI.list(p[1]);
     else if (p[0] === 'pruefung' && window.ExamUI) window.ExamUI.exam(p[1], p[2]);
     else { setNav(''); main.innerHTML = '<div class="page-head"><h1>Page not found</h1><p class="sub">This page does not exist. <a href="#/">Go to the start page</a>.</p></div>'; }
