@@ -30,3 +30,7 @@ Each grammar topic has a quiz in `js/quiz/a1.js` to `c2.js`, one question per li
     prompt ## answer || alternative answer ## option | option | option
 
 Leave out the options for a typed answer. A first line starting with `@` is the instruction shown above the questions.
+
+## Updating the site
+
+Every file link in `index.html` carries a version number (`?v=…`). Change it whenever you edit a CSS or JS file, so browsers load the new version instead of a cached copy.
