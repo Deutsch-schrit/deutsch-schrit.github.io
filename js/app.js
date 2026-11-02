@@ -1,0 +1,375 @@
+(function () {
+  'use strict';
+
+  var LEVELS = [
+    { code: 'A1', name: 'Anfänger', en: 'Beginner', desc: 'Introduce yourself, ask simple questions, talk about everyday things.' },
+    { code: 'A2', name: 'Grundlagen', en: 'Elementary', desc: 'Talk about the past, give reasons, describe people and places.' },
+    { code: 'B1', name: 'Mittelstufe', en: 'Intermediate', desc: 'Tell stories, explain opinions, handle most situations at work and on the road.' },
+    { code: 'B2', name: 'Gute Mittelstufe', en: 'Upper intermediate', desc: 'Argue clearly, understand complex texts, write formally.' },
+    { code: 'C1', name: 'Fortgeschritten', en: 'Advanced', desc: 'Academic and professional German: nominal style, nuance, precision.' },
+    { code: 'C2', name: 'Exzellent', en: 'Proficient', desc: 'Style, register and idiom close to a native speaker.' }
+  ];
+  var TYPE_NAMES = { N: 'Nomen', V: 'Verb', A: 'Adjektiv' };
+  var INTERVAL_DAYS = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 16 };
+  var DAY = 86400000;
+  var main = document.getElementById('main');
+
+  /* ---------- storage (fails quietly in private mode) ---------- */
+  function load(key, fallback) {
+    try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+  }
+  function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* ignore */ } }
+  var progress = load('dsfs-progress', {});
+
+  /* ---------- vocabulary ---------- */
+  var VOCAB = [];
+  Object.keys(window.VOCAB_RAW || {}).forEach(function (lvl) {
+    window.VOCAB_RAW[lvl].trim().split('\n').forEach(function (line) {
+      line = line.trim();
+      if (!line || line.charAt(0) === '#') return;
+      var p = line.split('|').map(function (x) { return x.trim(); });
+      var e;
+      if (p[0] === 'N') e = { type: 'N', art: p[1], word: p[2], f1: p[3], en: p[4] };
+      else if (p[0] === 'V') e = { type: 'V', word: p[1], f1: p[2], f2: p[3], en: p[4] };
+      else e = { type: 'A', word: p[1], f1: p[2], f2: p[3], en: p[4] };
+      e.level = lvl;
+      e.id = lvl + '|' + e.type + '|' + (e.art || '') + e.word;
+      VOCAB.push(e);
+    });
+  });
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function artHtml(a) {
+    if (a === 'pl') return '<span class="art art-pl">die</span>';
+    return '<span class="art art-' + a + '">' + a + '</span>';
+  }
+  function wordHtml(e) {
+    if (e.type === 'N') return artHtml(e.art) + ' ' + esc(e.word) + (e.art === 'pl' ? ' <small class="art-pl">(Pl.)</small>' : '');
+    return esc(e.word);
+  }
+  function formsText(e) {
+    if (e.type === 'N') return e.art === 'pl' ? 'nur Plural' : (e.f1 === '—' ? 'kein Plural' : 'die ' + e.f1);
+    if (e.type === 'V') return e.f1 + ', ' + e.f2;
+    return e.f1 === '—' ? '—' : e.f1 + ', ' + e.f2;
+  }
+  function norm(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss'); }
+
+  /* ---------- routing ---------- */
+  function parseHash() {
+    var h = location.hash.replace(/^#\/?/, '');
+    var q = {};
+    var qi = h.indexOf('?');
+    if (qi > -1) {
+      h.slice(qi + 1).split('&').forEach(function (kv) { var p = kv.split('='); q[p[0]] = decodeURIComponent(p[1] || ''); });
+      h = h.slice(0, qi);
+    }
+    return { parts: h.split('/').filter(Boolean), q: q };
+  }
+  function setNav(section) {
+    document.querySelectorAll('.mainnav a').forEach(function (a) {
+      if (a.getAttribute('data-nav') === section) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+  function render() {
+    stopKeys();
+    var r = parseHash();
+    var p = r.parts;
+    if (!p.length) { setNav(''); home(); document.title = 'Deutsch Schritt für Schritt'; }
+    else if (p[0] === 'grammatik') { setNav('grammatik'); grammarOverview(p[1]); }
+    else if (p[0] === 'thema') { setNav('grammatik'); topicPage(p[1]); }
+    else if (p[0] === 'wortschatz') { setNav('wortschatz'); vocabPage(r.q); }
+    else if (p[0] === 'karteikarten') { setNav('karteikarten'); flashPage(r.q); }
+    else { setNav(''); main.innerHTML = '<div class="page-head"><h1>Seite nicht gefunden</h1><p class="sub">This page does not exist. <a href="#/">Go to the start page</a>.</p></div>'; }
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', render);
+
+  var keyHandler = null;
+  function stopKeys() { if (keyHandler) document.removeEventListener('keydown', keyHandler); keyHandler = null; }
+  function listenKeys(fn) { stopKeys(); keyHandler = fn; document.addEventListener('keydown', fn); }
+
+  function topicsFor(code) { return window.GRAMMAR.filter(function (t) { return t.level === code; }); }
+  function vocabFor(code) { return VOCAB.filter(function (e) { return e.level === code; }); }
+  function learnedShare(list) {
+    if (!list.length) return 0;
+    var n = list.filter(function (e) { return progress[e.id] && progress[e.id].box >= 3; }).length;
+    return Math.round(n / list.length * 100);
+  }
+
+  /* ---------- home ---------- */
+  function home() {
+    var steps = LEVELS.map(function (l) {
+      var v = vocabFor(l.code), share = learnedShare(v);
+      return '<a class="step" href="#/grammatik/' + l.code.toLowerCase() + '"><span class="code">' + l.code + '</span>' +
+        '<span class="name">' + l.name + '</span><span class="count">' + topicsFor(l.code).length + ' Themen, ' + v.length + ' Wörter</span>' +
+        '<span class="bar" title="' + share + '% der Wörter gelernt"><i style="width:' + share + '%"></i></span></a>';
+    }).join('');
+    main.innerHTML =
+      '<section class="hero"><div><h1><span class="art-der">der</span><span class="art-die">die</span><span class="art-das">das</span></h1>' +
+      '<p class="lede">German grammar explained in English, from your first sentence at A1 to confident, polished German at C2. With word lists and flashcards for every level.</p>' +
+      '<div class="hero-actions"><a class="btn primary" href="#/grammatik">Grammatik lernen</a><a class="btn" href="#/karteikarten">Karteikarten üben</a></div></div>' +
+      '<div class="gender-game" aria-live="polite"><h2>Der, die oder das? Choose the article.</h2><p class="gg-word" id="gg-word"></p><p class="gg-en" id="gg-en"></p>' +
+      '<div class="gg-choices"><button class="c-der" data-a="der">der</button><button class="c-die" data-a="die">die</button><button class="c-das" data-a="das">das</button></div>' +
+      '<p class="gg-feedback" id="gg-fb"></p><p class="gg-score" id="gg-score"></p></div></section>' +
+      '<section><div class="section-head"><h2>Dein Weg von A1 bis C2</h2><p>Each step opens the grammar topics for that level.</p></div><div class="ladder">' + steps + '</div></section>' +
+      '<section class="tools"><div><h3>Grammatik</h3><p>Every topic has a short explanation, tables, example sentences with translations, typical mistakes and an exercise with answers.</p><a class="more" href="#/grammatik">Alle Themen</a></div>' +
+      '<div><h3>Wortschatz</h3><p>Nouns with article and plural, verbs with Präteritum and Perfekt, adjectives with Komparativ and Superlativ. Search in German or English.</p><a class="more" href="#/wortschatz">Wortliste öffnen</a></div>' +
+      '<div><h3>Karteikarten</h3><p>Flashcards that bring back the words you find hard more often and the easy ones less often. Your progress stays in this browser.</p><a class="more" href="#/karteikarten">Jetzt üben</a></div></section>';
+    genderGame();
+  }
+
+  function genderGame() {
+    var pool = VOCAB.filter(function (e) { return e.type === 'N' && /^(der|die|das)$/.test(e.art) && /^(A1|A2|B1)$/.test(e.level); });
+    var score = 0, total = 0, current = null, locked = false;
+    var w = document.getElementById('gg-word'), en = document.getElementById('gg-en'), fb = document.getElementById('gg-fb'), sc = document.getElementById('gg-score');
+    var btns = main.querySelectorAll('.gg-choices button');
+    function next() {
+      current = pool[Math.floor(Math.random() * pool.length)];
+      w.textContent = current.word; en.textContent = current.en; fb.textContent = ''; locked = false;
+      btns.forEach(function (b) { b.className = 'c-' + b.dataset.a; });
+    }
+    function choose(a) {
+      if (locked || !current) return;
+      locked = true; total++;
+      var ok = a === current.art;
+      if (ok) score++;
+      btns.forEach(function (b) { if (b.dataset.a === current.art) b.classList.add('right'); else b.classList.add('wrong'); });
+      w.innerHTML = artHtml(current.art) + ' ' + esc(current.word);
+      fb.textContent = ok ? 'Richtig!' : 'Leider falsch. It is ' + current.art + ' ' + current.word + '.';
+      sc.textContent = score + ' von ' + total + ' richtig';
+      setTimeout(next, ok ? 900 : 1800);
+    }
+    btns.forEach(function (b) { b.addEventListener('click', function () { choose(b.dataset.a); }); });
+    if (pool.length) next();
+  }
+
+  /* ---------- grammar ---------- */
+  function grammarOverview(levelSlug) {
+    var only = levelSlug ? levelSlug.toUpperCase() : null;
+    var list = only ? LEVELS.filter(function (l) { return l.code === only; }) : LEVELS;
+    var blocks = list.map(function (l) {
+      var items = topicsFor(l.code).map(function (t) {
+        return '<li><a href="#/thema/' + t.id + '"><span class="t">' + t.title + '<small>' + t.de + '</small></span><span class="s">' + t.summary + '</span></a></li>';
+      }).join('');
+      return '<section class="level-block" id="lvl-' + l.code + '"><h2><span class="level-tag">' + l.code + '</span>' + l.name + ' <small style="font-weight:400;color:var(--muted);font-size:17px;margin-left:8px">' + l.en + '</small></h2>' +
+        '<p class="desc">' + l.desc + '</p><ul class="topic-list">' + (items || '<li class="empty">Topics for this level are coming soon.</li>') + '</ul>' +
+        '<div class="level-links"><a class="btn" href="#/wortschatz?level=' + l.code + '">Wortschatz ' + l.code + '</a><a class="btn" href="#/karteikarten?level=' + l.code + '">Karteikarten ' + l.code + '</a></div></section>';
+    }).join('');
+    var levelNav = LEVELS.map(function (l) {
+      return '<a class="chip" aria-pressed="' + (only === l.code) + '" href="#/grammatik/' + l.code.toLowerCase() + '" style="text-decoration:none">' + l.code + '</a>';
+    }).join('');
+    document.title = (only ? 'Grammatik ' + only : 'Grammatik') + ' | Deutsch Schritt für Schritt';
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>' + (only ? 'Grammatik ' + only : 'Grammatik A1 bis C2') + '</h1>' +
+      '<p class="sub">Choose a topic. Each one explains the rule in English, shows it in German sentences and ends with an exercise.</p></div>' +
+      '<div class="chips" style="margin-bottom:28px"><a class="chip" aria-pressed="' + (!only) + '" href="#/grammatik" style="text-decoration:none">Alle Niveaus</a>' + levelNav + '</div>' + blocks;
+  }
+
+  function topicPage(id) {
+    var all = window.GRAMMAR, i = all.findIndex(function (t) { return t.id === id; });
+    if (i < 0) { main.innerHTML = '<div class="page-head"><h1>Thema nicht gefunden</h1><p class="sub"><a href="#/grammatik">Back to all topics</a></p></div>'; return; }
+    var t = all[i], prev = all[i - 1], next = all[i + 1];
+    document.title = t.title + ' (' + t.level + ') | Deutsch Schritt für Schritt';
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/grammatik">Grammatik</a> / <a href="#/grammatik/' + t.level.toLowerCase() + '">' + t.level + '</a></p>' +
+      '<h1><span class="level-tag">' + t.level + '</span>' + t.title + '</h1><p class="sub"><strong style="font-family:var(--sans);font-weight:500;color:var(--ink)">' + t.de + '</strong><br>' + t.summary + '</p></div>' +
+      '<div class="topic-layout"><article class="prose" id="prose">' + t.body + '</article><aside class="toc" id="toc"></aside></div>' +
+      '<nav class="pager" aria-label="Weitere Themen">' +
+      (prev ? '<a href="#/thema/' + prev.id + '"><small>Vorheriges Thema</small>' + prev.level + ': ' + prev.title + '</a>' : '<span></span>') +
+      (next ? '<a class="next" href="#/thema/' + next.id + '"><small>Nächstes Thema</small>' + next.level + ': ' + next.title + '</a>' : '') + '</nav>';
+    var hs = main.querySelectorAll('#prose h2');
+    var toc = '<h2>Auf dieser Seite</h2><ol>';
+    hs.forEach(function (h, k) {
+      if (!h.id) h.id = 'abschnitt-' + k;
+      toc += '<li><a href="#" data-target="' + h.id + '">' + h.textContent + '</a></li>';
+    });
+    toc += '</ol><a class="btn" href="#/karteikarten?level=' + t.level + '">Karteikarten ' + t.level + '</a>';
+    var tocEl = document.getElementById('toc');
+    tocEl.innerHTML = toc;
+    tocEl.addEventListener('click', function (ev) {
+      var a = ev.target.closest('a[data-target]');
+      if (!a) return;
+      ev.preventDefault();
+      document.getElementById(a.dataset.target).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  /* ---------- vocabulary page ---------- */
+  function chipRow(name, options, active) {
+    return '<div class="chips" role="group" aria-label="' + name + '">' + options.map(function (o) {
+      return '<button class="chip" data-group="' + name + '" data-val="' + o[0] + '" aria-pressed="' + (active === o[0]) + '">' + o[1] + '</button>';
+    }).join('') + '</div>';
+  }
+  function vocabPage(q) {
+    var state = { level: q.level || 'all', type: q.type || 'all', text: '' };
+    document.title = 'Wortschatz | Deutsch Schritt für Schritt';
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Wortschatz</h1><p class="sub">' + VOCAB.length +
+      ' words from A1 to C2. Nouns show their article in colour: <span class="art art-der">der</span>, <span class="art art-die">die</span>, <span class="art art-das">das</span>.</p></div>' +
+      '<div class="filters"><div class="fgroup"><span>Niveau</span>' + chipRow('level', [['all', 'Alle']].concat(LEVELS.map(function (l) { return [l.code, l.code]; })), state.level) + '</div>' +
+      '<div class="fgroup"><span>Wortart</span>' + chipRow('type', [['all', 'Alle'], ['N', 'Nomen'], ['V', 'Verben'], ['A', 'Adjektive']], state.type) + '</div>' +
+      '<div class="fgroup"><label for="vsearch"><span style="font-size:14px;color:var(--muted)">Suchen</span></label><input id="vsearch" class="search" type="search" placeholder="Deutsch oder English" autocomplete="off"></div></div>' +
+      '<p class="vcount" id="vcount"></p><div style="overflow-x:auto"><table class="vtable"><thead><tr><th>Wort</th><th>Formen</th><th>English</th><th class="hide-s">Niveau</th></tr></thead><tbody id="vbody"></tbody></table></div>';
+    var body = document.getElementById('vbody'), count = document.getElementById('vcount');
+    function draw() {
+      var t = norm(state.text);
+      var rows = VOCAB.filter(function (e) {
+        if (state.level !== 'all' && e.level !== state.level) return false;
+        if (state.type !== 'all' && e.type !== state.type) return false;
+        if (t && norm(e.word).indexOf(t) < 0 && norm(e.en).indexOf(t) < 0) return false;
+        return true;
+      });
+      count.textContent = rows.length + (rows.length === 1 ? ' Wort' : ' Wörter');
+      body.innerHTML = rows.length ? rows.map(function (e) {
+        return '<tr><td class="w">' + wordHtml(e) + '</td><td class="f">' + esc(formsText(e)) + '</td><td class="e">' + esc(e.en) + '</td><td class="l hide-s">' + e.level + '</td></tr>';
+      }).join('') : '<tr><td colspan="4" class="empty">No words match. Try another spelling or choose "Alle".</td></tr>';
+    }
+    main.querySelectorAll('.chip[data-group]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state[b.dataset.group] = b.dataset.val;
+        main.querySelectorAll('.chip[data-group="' + b.dataset.group + '"]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+        draw();
+      });
+    });
+    document.getElementById('vsearch').addEventListener('input', function (ev) { state.text = ev.target.value; draw(); });
+    draw();
+  }
+
+  /* ---------- flashcards ---------- */
+  function flashPage(q) {
+    var saved = load('dsfs-settings', { levels: ['A1'], types: ['N', 'V', 'A'], dir: 'de', perSession: 20 });
+    if (q.level) saved.levels = [q.level];
+    var s = saved;
+    document.title = 'Karteikarten | Deutsch Schritt für Schritt';
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/">Start</a></p><h1>Karteikarten</h1><p class="sub">Choose what to practise, then rate each card. Words you miss come back sooner; words you know wait longer.</p></div>' +
+      '<div class="fc-wrap"><aside class="fc-setup" id="setup"></aside><section class="fc-stage" id="stage" aria-live="polite"></section></div>';
+    var setup = document.getElementById('setup'), stage = document.getElementById('stage');
+
+    function pool() { return VOCAB.filter(function (e) { return s.levels.indexOf(e.level) > -1 && s.types.indexOf(e.type) > -1; }); }
+    function drawSetup() {
+      var p = pool(), now = Date.now(), boxes = [0, 0, 0, 0, 0], due = 0, fresh = 0;
+      p.forEach(function (e) {
+        var r = progress[e.id];
+        if (!r) { fresh++; return; }
+        boxes[r.box - 1]++;
+        if (r.due <= now) due++;
+      });
+      function multi(name, opts, arr) {
+        return '<div class="chips" role="group" aria-label="' + name + '">' + opts.map(function (o) {
+          return '<button class="chip" data-multi="' + name + '" data-val="' + o[0] + '" aria-pressed="' + (arr.indexOf(o[0]) > -1) + '">' + o[1] + '</button>';
+        }).join('') + '</div>';
+      }
+      setup.innerHTML = '<div class="fgroup"><span>Niveau</span>' + multi('levels', LEVELS.map(function (l) { return [l.code, l.code]; }), s.levels) + '</div>' +
+        '<div class="fgroup"><span>Wortart</span>' + multi('types', [['N', 'Nomen'], ['V', 'Verben'], ['A', 'Adjektive']], s.types) + '</div>' +
+        '<div class="fgroup"><span>Richtung</span><div class="chips"><button class="chip" data-dir="de" aria-pressed="' + (s.dir === 'de') + '">Deutsch zuerst</button><button class="chip" data-dir="en" aria-pressed="' + (s.dir === 'en') + '">English first</button></div></div>' +
+        '<div class="fgroup"><span>Neue Karten pro Runde</span><div class="chips">' + [10, 20, 40].map(function (n) { return '<button class="chip" data-per="' + n + '" aria-pressed="' + (s.perSession === n) + '">' + n + '</button>'; }).join('') + '</div></div>' +
+        '<div class="fc-stats">' + p.length + ' Karten ausgewählt: ' + fresh + ' neu, ' + due + ' fällig.<div class="boxes">' +
+        boxes.map(function (b, k) { return '<div title="Fach ' + (k + 1) + '"><b>' + b + '</b>Fach ' + (k + 1) + '</div>'; }).join('') + '</div></div>' +
+        '<button class="btn" id="reset" style="align-self:flex-start;font-size:14px;padding:9px 14px">Fortschritt für diese Auswahl löschen</button>';
+      setup.querySelectorAll('[data-multi]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var arr = s[b.dataset.multi], v = b.dataset.val, k = arr.indexOf(v);
+          if (k > -1) { if (arr.length > 1) arr.splice(k, 1); } else arr.push(v);
+          save('dsfs-settings', s); drawSetup(); idle();
+        });
+      });
+      setup.querySelectorAll('[data-dir]').forEach(function (b) { b.addEventListener('click', function () { s.dir = b.dataset.dir; save('dsfs-settings', s); drawSetup(); idle(); }); });
+      setup.querySelectorAll('[data-per]').forEach(function (b) { b.addEventListener('click', function () { s.perSession = +b.dataset.per; save('dsfs-settings', s); drawSetup(); idle(); }); });
+      var resetBtn = document.getElementById('reset');
+      resetBtn.addEventListener('click', function () {
+        if (!resetBtn.dataset.armed) {
+          resetBtn.dataset.armed = '1';
+          resetBtn.textContent = 'Click again to delete progress for ' + p.length + ' cards';
+          return;
+        }
+        p.forEach(function (e) { delete progress[e.id]; });
+        save('dsfs-progress', progress); drawSetup(); idle();
+      });
+    }
+
+    function buildQueue() {
+      var p = pool(), now = Date.now();
+      var dueCards = p.filter(function (e) { return progress[e.id] && progress[e.id].due <= now; })
+        .sort(function (a, b) { return progress[a.id].box - progress[b.id].box; });
+      var fresh = p.filter(function (e) { return !progress[e.id]; });
+      for (var i = fresh.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fresh[i]; fresh[i] = fresh[j]; fresh[j] = t; }
+      return dueCards.concat(fresh.slice(0, s.perSession));
+    }
+
+    function idle() {
+      stopKeys();
+      var n = buildQueue().length;
+      stage.innerHTML = n
+        ? '<div class="done"><h2>' + n + ' Karten bereit</h2><p>Click a card or press the space bar to turn it over, then rate how well you knew it.</p><button class="btn primary" id="start">Runde starten</button></div>'
+        : '<div class="done"><h2>Alles erledigt</h2><p>No cards are due in this selection. Choose another level, or come back tomorrow.</p></div>';
+      var b = document.getElementById('start');
+      if (b) { b.addEventListener('click', session); b.focus(); }
+    }
+
+    function session() {
+      var queue = buildQueue(), total = queue.length, doneCount = 0, flipped = false, cur;
+      function show() {
+        if (!queue.length) {
+          stopKeys();
+          stage.innerHTML = '<div class="done"><h2>Runde geschafft</h2><p>You reviewed ' + doneCount + ' cards. Your progress is saved.</p><button class="btn primary" id="again">Neue Runde</button></div>';
+          document.getElementById('again').addEventListener('click', function () { drawSetup(); idle(); });
+          drawSetup();
+          return;
+        }
+        cur = queue[0]; flipped = false;
+        var g = cur.type === 'N' && cur.art !== 'pl' ? ' g-' + cur.art : '';
+        var front = s.dir === 'de' ? '<div class="front">' + wordHtml(cur) + '</div>' : '<div class="front en">' + esc(cur.en) + '</div>';
+        var pct = Math.round(doneCount / Math.max(total, 1) * 100);
+        stage.innerHTML = '<div class="fc-progress"><span>' + doneCount + ' / ' + total + '</span><span class="track"><i style="width:' + pct + '%"></i></span><span>' + queue.length + ' übrig</span></div>' +
+          '<div class="card' + (s.dir === 'de' ? g : '') + '" id="card" role="button" tabindex="0" aria-label="Karte umdrehen"><span class="kind">' + TYPE_NAMES[cur.type] + '</span><span class="lvl">' + cur.level + '</span>' + front +
+          '<div class="back" id="back" hidden></div><span class="hint">Klicken oder Leertaste zum Umdrehen</span></div>' +
+          '<div class="grade" id="grade" hidden><button class="g-again" data-g="1">Nochmal<small>1, comes back soon</small></button><button class="g-good" data-g="2">Gut<small>2, see it later</small></button><button class="g-easy" data-g="3">Leicht<small>3, much later</small></button></div>' +
+          '<p class="keys"><kbd>Leertaste</kbd> umdrehen &nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> bewerten</p>';
+        var card = document.getElementById('card');
+        card.addEventListener('click', flip);
+        card.focus({ preventScroll: true });
+        stage.querySelectorAll('[data-g]').forEach(function (b) { b.addEventListener('click', function () { grade(+b.dataset.g); }); });
+      }
+      function backHtml(e) {
+        var rows = '';
+        if (e.type === 'N') rows = '<dt>Plural</dt><dd>' + esc(formsText(e)) + '</dd>';
+        if (e.type === 'V') rows = '<dt>Präteritum</dt><dd>' + esc(e.f1) + '</dd><dt>Perfekt</dt><dd>' + esc(e.f2) + '</dd>';
+        if (e.type === 'A' && e.f1 !== '—') rows = '<dt>Komparativ</dt><dd>' + esc(e.f1) + '</dd><dt>Superlativ</dt><dd>' + esc(e.f2) + '</dd>';
+        var top = s.dir === 'de' ? '<p class="meaning">' + esc(e.en) + '</p>' : '<p class="front" style="font-size:36px;margin:0 0 14px">' + wordHtml(e) + '</p>';
+        return top + (rows ? '<dl>' + rows + '</dl>' : '');
+      }
+      function flip() {
+        if (flipped) return;
+        flipped = true;
+        var card = document.getElementById('card'), back = document.getElementById('back');
+        back.innerHTML = backHtml(cur); back.hidden = false;
+        card.classList.add('flipped', 'flip-anim');
+        if (s.dir === 'en' && cur.type === 'N' && cur.art !== 'pl') card.classList.add('g-' + cur.art);
+        document.getElementById('grade').hidden = false;
+      }
+      function grade(g) {
+        if (!flipped) return;
+        var r = progress[cur.id] || { box: 0 };
+        var box;
+        if (g === 1) box = 1;
+        else if (g === 2) box = Math.min(5, Math.max(r.box, 1) + 1);
+        else box = Math.min(5, Math.max(r.box, 1) + 2);
+        progress[cur.id] = { box: box, due: Date.now() + INTERVAL_DAYS[box] * DAY };
+        save('dsfs-progress', progress);
+        queue.shift();
+        if (g === 1) queue.splice(Math.min(3, queue.length), 0, cur);
+        else doneCount++;
+        if (g === 1) total = Math.max(total, doneCount + queue.length);
+        show();
+      }
+      listenKeys(function (ev) {
+        if (ev.target.tagName === 'INPUT') return;
+        if (ev.key === ' ' || ev.key === 'Enter') { if (!flipped) { ev.preventDefault(); flip(); } }
+        else if (flipped && /^[123]$/.test(ev.key)) grade(+ev.key);
+      });
+      show();
+    }
+
+    drawSetup();
+    idle();
+  }
+
+  render();
+})();
