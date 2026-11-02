@@ -30,8 +30,6 @@ D|auch|degree|Ich komme auch.|also, too
 D|nur|degree|Ich habe nur fünf Euro.|only
 D|zusammen|manner|Wir lernen zusammen.|together
 D|allein|manner|Sie wohnt allein.|alone
-D|ja|comment|Ja, das stimmt.|yes
-D|nein|comment|Nein, danke.|no
 D|vielleicht|comment|Vielleicht komme ich morgen.|maybe
 D|wieder|frequency|Komm bald wieder!|again
 D|noch|time|Ich bin noch müde.|still
