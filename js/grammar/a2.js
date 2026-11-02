@@ -153,6 +153,9 @@ GRAMMAR.push(
   TBL('Form | Use | Example\nKönnten Sie / Könntest du …? | polite request | Könnten Sie mir bitte helfen?\nWürden Sie / Würdest du …? | polite request | Würden Sie bitte das Fenster schließen?\nIch hätte gern … | ordering, asking for something | Ich hätte gern ein Stück Kuchen.\nIch würde gern … | wish | Ich würde gern nach Japan reisen.\nIch möchte … | wish, order | Ich möchte einen Termin.\nDu solltest … | advice | Du solltest mehr schlafen.') +
   EX('Könnten Sie das bitte wiederholen? | Could you repeat that, please?\nWir hätten gern die Rechnung. | We would like the bill.\nAn deiner Stelle würde ich zum Arzt gehen. | If I were you, I would go to the doctor.') +
   NOTE('The verb after <em>würde, könnte, sollte</em> goes to the end in the infinitive, just like with modal verbs.') +
+  '<h2>On the phone</h2>' +
+  '<p>Phone calls to offices, doctors or landlords sound much better with the Konjunktiv II. Useful phrases:</p>' +
+  EX('Könnte ich bitte mit Frau Weber sprechen? | Could I speak to Ms Weber, please?\nIch hätte eine Frage zu meiner Rechnung. | I have a question about my bill.\nKönnten Sie das bitte buchstabieren? | Could you spell that, please?\nWürden Sie bitte etwas langsamer sprechen? | Would you speak a little more slowly, please?\nHabe ich Sie richtig verstanden, dass …? | Did I understand correctly that …?\nVielen Dank für Ihre Hilfe, Frau Weber. Auf Wiederhören! | Thank you for your help, Ms Weber. Goodbye! (on the phone)') +
   MISTAKE('Ich will ein Bier. (at a restaurant)', 'Ich hätte gern ein Bier. / Ich möchte ein Bier.', '<em>wollen</em> sounds demanding in requests.') +
   PRACTICE('Make these sentences polite.',
     'Helfen Sie mir!\nGib mir das Salz!\nIch will einen Kaffee.\nSchlaf mehr! (advice)\nIch will gern Spanisch lernen. (wish)',

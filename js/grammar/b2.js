@@ -95,6 +95,10 @@ GRAMMAR.push(
   '<h2>Tenses</h2>' +
   TBL('Original | Reported\nPräsens: „Ich arbeite viel.“ | Er sagt, er arbeite viel.\nPast: „Ich habe viel gearbeitet.“ | Er sagt, er habe viel gearbeitet.\nFuture: „Ich werde kommen.“ | Er sagt, er werde kommen.\nQuestion: „Kommst du?“ | Sie fragt, ob ich komme / käme.\nImperative: „Warte!“ | Er sagt, ich solle warten.') +
   NOTE('Pronouns and time words change perspective: <span class="de">„Ich komme morgen.“ → Sie sagte, sie komme am nächsten Tag.</span> In everyday speech, Germans mostly use the indicative or würde.') +
+  '<h2>Why it matters in the exam</h2>' +
+  '<p>In the written exam you often have to <strong>pass on information from a text</strong>: summarise an article, report what someone said in an email, or quote opinions in an argumentative essay. The Konjunktiv I lets you report other people\'s statements <strong>neutrally</strong>, without presenting them as your own opinion. Examiners also count it as a sign of advanced grammar.</p>' +
+  EX('Im Artikel heißt es, Online-Shopping sei bequem, aber riskant. | The article says online shopping is convenient but risky.\nDer Autor meint, viele Kunden würden zu schnell bestellen. | The author thinks many customers order too quickly. (Konj. II replaces the Konj. I form "bestellen")\nLaut der Expertin habe sich das Kaufverhalten stark verändert. | According to the expert, shopping behaviour has changed a lot.') +
+  NOTE('Useful introductions: <span class="de">Der Autor behauptet / betont / ist der Meinung, … · Im Text wird erklärt, … · Laut … / … zufolge …</span>. After them, use the Konjunktiv I (or Konjunktiv II where the forms look like the indicative).') +
   PRACTICE('Report the statements.',
     'Der Minister: „Die Lage ist ernst.“\nDie Studentin: „Ich habe die Prüfung bestanden.“\nDie Firma: „Wir werden 200 Stellen schaffen.“\nDer Arzt zum Patienten: „Schlafen Sie mehr!“',
     'Der Minister sagte, die Lage sei ernst.\nDie Studentin sagte, sie habe die Prüfung bestanden.\nDie Firma teilte mit, sie werde 200 Stellen schaffen.\nDer Arzt sagte dem Patienten, er solle mehr schlafen.')
