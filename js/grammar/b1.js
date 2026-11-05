@@ -117,6 +117,12 @@ GRAMMAR.push(
   body:
   '<p>The <strong>Konjunktiv II</strong> expresses things that are not real: wishes, imagined situations and advice. For most verbs you use <strong>würde + infinitive</strong>. Some frequent verbs have their own form.</p>' +
   TBL('Infinitive | Konjunktiv II\nsein | wäre\nhaben | hätte\nwerden | würde\nkönnen / müssen / dürfen | könnte / müsste / dürfte\nsollen / wollen | sollte / wollte\nwissen / kommen / gehen / geben | wüsste / käme / ginge / gäbe') +
+  '<h2>How to build it: two options</h2>' +
+  '<p><strong>Option 1: würde + infinitive.</strong> Works for every verb and is the normal choice in speech: <span class="de">Ich würde nach Berlin fahren.</span></p>' +
+  '<p><strong>Option 2: the verb\'s own form.</strong> Take the <strong>Präteritum</strong>, add an <strong>umlaut</strong> (a → ä, o → ö, u → ü) and the ending <strong>-e</strong>: <span class="de">fahren → fuhr → führe</span>. Use it for <span class="de">sein, haben</span> and the modal verbs (always), and in formal or academic texts.</p>' +
+  TBL('Indikativ | Präteritum | Konjunktiv II\nich fahre | ich fuhr | ich führe\ndu gehst | du gingst | du gingest\ner isst | er aß | er äße\nes gibt | es gab | es gäbe\nwir brauchen | wir brauchten | wir bräuchten\nihr kommt | ihr kamt | ihr kämet\nsie wissen | sie wussten | sie wüssten') +
+  TBL('Person | Ending | Example\nich | -e | ich käme\ndu | -(e)st | du kämest\ner / sie / es | -e | sie käme\nwir | -en | wir kämen\nihr | -(e)t | ihr kämet\nsie / Sie | -en | sie kämen') +
+  NOTE('Regular verbs have no own form: their Konjunktiv II looks exactly like the Präteritum (<span class="de">ich machte</span>), so always use <span class="de">würde</span> with them: <span class="de">Ich würde das machen.</span> <span class="de">bräuchte</span> is very common in speech; the written standard form is <span class="de">brauchte</span>. Many own forms (<span class="de">führe, äße, ginge</span>) sound formal or old-fashioned in conversation, where Germans prefer <span class="de">würde</span>.') +
   '<h2>Unreal conditions</h2>' +
   EX('Wenn ich mehr Zeit hätte, würde ich öfter Sport machen. | If I had more time, I would do more sport.\nWenn es nicht so teuer wäre, würden wir es kaufen. | If it weren\'t so expensive, we would buy it.') +
   '<h2>Wishes</h2>' +

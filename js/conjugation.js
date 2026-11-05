@@ -51,7 +51,7 @@
     sollen: 'sollte', wollen: 'wollte', 'mögen': 'möchte', wissen: 'wüsste', kommen: 'käme', gehen: 'ginge',
     geben: 'gäbe', finden: 'fände', lassen: 'ließe', bleiben: 'bliebe', tun: 'täte', stehen: 'stünde',
     halten: 'hielte', bringen: 'brächte', denken: 'dächte', nehmen: 'nähme', sehen: 'sähe', liegen: 'läge',
-    sitzen: 'säße', fahren: 'führe', schlafen: 'schliefe', brauchen: 'bräuchte'
+    sitzen: 'säße', fahren: 'führe', essen: 'äße', schlafen: 'schliefe', brauchen: 'bräuchte'
   };
   var KONJ2_COMMON = { sein: 1, haben: 1, werden: 1, 'können': 1, 'müssen': 1, 'dürfen': 1, sollen: 1, wollen: 1, 'mögen': 1, wissen: 1 };
 

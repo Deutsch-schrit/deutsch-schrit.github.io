@@ -404,6 +404,10 @@ N|die|Lieferung|Lieferungen|delivery
 V|zurückschicken|schickte zurück|hat zurückgeschickt|to send back, to return
 N|die|Bescheinigung|Bescheinigungen|certificate, written confirmation
 N|der|Notfalldienst|Notfalldienste|emergency service
+V|erwarten|erwartete|hat erwartet|to expect
+N|das|Team|Teams|team
+N|der|Partner|Partner|partner (male)
+A|teamfähig|—|—|able to work in a team
 `,
 B2: `
 N|die|Voraussetzung|Voraussetzungen|prerequisite, requirement
@@ -556,6 +560,12 @@ N|die|Rücksendung|Rücksendungen|return (of goods)
 N|der|Befragte|Befragten|respondent in a survey (female: die Befragte)
 N|die|Sprachhandlung|Sprachhandlungen|speech act, communicative task
 V|lösen|löste|hat gelöst|to solve; to resolve (a conflict)
+N|das|Betriebsklima|—|working atmosphere
+V|sich einleben|lebte sich ein|hat sich eingelebt|to settle in
+V|sich verstehen (mit)|verstand sich|hat sich verstanden|to get along (with)
+A|gleichberechtigt|—|—|equal, having equal rights
+A|wertschätzend|—|—|appreciative, respectful
+A|belehrend|—|—|lecturing, condescending
 `,
 C1: `
 N|die|Annahme|Annahmen|assumption
