@@ -283,7 +283,8 @@
     document.title = v.display + ' | Conjugation | Deutsch Schritt für Schritt';
     var c = conjugate(v);
     var cardsHtml = c.tables.map(function (t) {
-      return '<section class="conj-card"><h2>' + t.name + ' <small>' + t.en + '</small></h2><table class="conj-table"><tbody>' +
+      var say = t.forms.map(function (f, i) { var pr = PERSONS[i].split('/')[0]; return f === '—' ? '' : pr.charAt(0).toUpperCase() + pr.slice(1) + ' ' + f; }).filter(Boolean).join('. ') + '.';
+      return '<section class="conj-card"><h2>' + t.name + ' <small>' + t.en + '</small>' + (window.DSSayBtn ? window.DSSayBtn(say, 'Listen to ' + t.name) : '') + '</h2><table class="conj-table"><tbody>' +
         t.forms.map(function (f, i) { return '<tr><th scope="row">' + PERSONS[i] + '</th>' + (f === '—' ? '<td class="na">—</td>' : '<td data-a="' + esc(f) + '">' + esc(f) + '</td>') + '</tr>'; }).join('') +
         '</tbody></table>' + (t.note ? '<p class="conj-note">' + t.note + '</p>' : '') + '</section>';
     }).join('');
@@ -292,7 +293,7 @@
     else cardsHtml += '<section class="conj-card"><h2>Imperativ <small>commands</small></h2><p class="conj-note">' + (v.third ? 'This verb is used only in the 3rd person, so it has no imperative.' : 'Modal verbs have no imperative.') + '</p></section>';
 
     var parts = '<dl class="conj-parts"><div><dt>Infinitiv</dt><dd>' + esc(v.display) + '</dd></div><div><dt>Präteritum</dt><dd>' + esc(v.prat) + '</dd></div><div><dt>Partizip II</dt><dd>' + esc(v.part2) + '</dd></div><div><dt>Perfekt</dt><dd>' + esc(v.perf) + '</dd></div></dl>';
-    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/konjugation">Conjugation</a> / ' + v.level + '</p><h1>' + esc(v.display) + '</h1><p class="sub">' + esc(v.en) + '</p></div>' +
+    main.innerHTML = '<div class="page-head"><p class="crumbs"><a href="#/konjugation">Conjugation</a> / ' + v.level + '</p><h1>' + esc(v.display) + (window.DSSayBtn ? ' ' + window.DSSayBtn((v.refl ? 'sich ' : '') + infinitiveFull(v)) : '') + '</h1><p class="sub">' + esc(v.en) + '</p></div>' +
       '<div class="conj-tags">' + c.tags.map(function (t) { return '<span class="ctag ctag-' + t[0] + '">' + esc(t[1]) + '</span>'; }).join('') + '</div>' + parts +
       '<div class="conj-tools"><button class="btn" id="ctest">Test yourself</button><span class="conj-hint" id="chint">Hide the forms and type them in. The site checks each answer.</span></div>' +
       '<div class="conj-grid" id="cgrid">' + cardsHtml + '</div>' +

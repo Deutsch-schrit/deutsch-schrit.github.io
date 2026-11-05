@@ -45,6 +45,22 @@
     if (a === 'pl') return '<span class="art art-pl">die</span>';
     return '<span class="art art-' + a + '">' + a + '</span>';
   }
+  var SPEAKER_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  function sayBtn(text, label) {
+    if (!window.DSSay || !window.DSSay.ok || !text) return '';
+    return '<button type="button" class="say" data-say="' + esc(text) + '" aria-label="' + esc(label || ('Pronounce ' + text)) + '" title="Listen">' + SPEAKER_SVG + '</button>';
+  }
+  function sayText(e) {
+    if (e.type === 'N') return (e.art === 'pl' ? 'die' : e.art) + ' ' + e.word;
+    return e.word.replace(/\s*\([^)]*\)\s*$/, '');
+  }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('.say');
+    if (!b) return;
+    ev.preventDefault(); ev.stopPropagation();
+    if (window.DSSay) window.DSSay.say(b.getAttribute('data-say'), b);
+  }, true);
+  window.DSSayBtn = sayBtn;
   function wordHtml(e) {
     if (e.type === 'N') return artHtml(e.art) + ' ' + esc(e.word) + (e.art === 'pl' ? ' <small class="art-pl">(Pl.)</small>' : '');
     return esc(e.word);
@@ -59,7 +75,7 @@
     function lab(name, val) { return '<span class="fl"><span class="flab">' + name + '</span> ' + esc(val) + '</span>'; }
     if (e.type === 'N') return lab('Plural', formsText(e));
     if (e.type === 'V') return lab('Präteritum', e.f1) + lab('Perfekt', e.f2);
-    if (e.type === 'D') return '<span class="fl fkind">' + esc(ADV_KIND[e.cat] || e.cat) + '</span>' + lab('Example', e.ex).replace('class="fl"', 'class="fl fwrap"');
+    if (e.type === 'D') return '<span class="fl fkind">' + esc(ADV_KIND[e.cat] || e.cat) + '</span>' + lab('Example', e.ex).replace('class="fl"', 'class="fl fwrap"').replace('</span>', '</span>').replace(/<\/span>$/, ' ' + sayBtn(e.ex, 'Listen to the example') + '</span>');
     if (e.f1 === '—') return '<span class="fl"><span class="flab">not compared</span></span>';
     return lab('Komparativ', e.f1) + lab('Superlativ', e.f2);
   }
@@ -454,7 +470,7 @@
       document.getElementById('vdef').innerHTML = defHtml(state.type);
       count.textContent = rows.length + (rows.length === 1 ? ' word' : ' words');
       body.innerHTML = rows.length ? rows.map(function (e) {
-        return '<tr><td class="w">' + (e.type === 'V' && window.ConjUI ? '<a class="vconj" href="' + window.ConjUI.link(e.word) + '" title="Show conjugation">' + wordHtml(e) + '</a>' : wordHtml(e)) + '</td><td class="f">' + formsHtml(e) + '</td><td class="e">' + esc(e.en) + '</td><td class="l hide-s">' + e.level + '</td></tr>';
+        return '<tr><td class="w"><span class="wcell">' + (e.type === 'V' && window.ConjUI ? '<a class="vconj" href="' + window.ConjUI.link(e.word) + '" title="Show conjugation">' + wordHtml(e) + '</a>' : wordHtml(e)) + sayBtn(sayText(e)) + '</span></td><td class="f">' + formsHtml(e) + '</td><td class="e">' + esc(e.en) + '</td><td class="l hide-s">' + e.level + '</td></tr>';
       }).join('') : '<tr><td colspan="4" class="empty">No words match. Try another spelling or choose "All".</td></tr>';
     }
     main.querySelectorAll('.chip[data-group]').forEach(function (b) {
@@ -695,13 +711,13 @@
         }
         cur = queue[0]; flipped = false;
         var g = cur.type === 'N' && cur.art !== 'pl' ? ' g-' + cur.art : '';
-        var front = s.dir === 'de' ? '<div class="front">' + wordHtml(cur) + '</div>' : '<div class="front en">' + esc(cur.en) + '</div>';
+        var front = s.dir === 'de' ? '<div class="front">' + wordHtml(cur) + sayBtn(sayText(cur)) + '</div>' : '<div class="front en">' + esc(cur.en) + '</div>';
         var pct = Math.round(doneCount / Math.max(total, 1) * 100);
         stage.innerHTML = '<div class="fc-progress"><span>' + doneCount + ' / ' + total + '</span><span class="track"><i style="width:' + pct + '%"></i></span><span>' + queue.length + ' left</span></div>' +
           '<div class="card' + (s.dir === 'de' ? g : '') + '" id="card" role="button" tabindex="0" aria-label="Turn card over"><span class="kind">' + TYPE_NAMES[cur.type] + '</span><span class="lvl">' + cur.level + '</span>' + front +
           '<div class="back" id="back" hidden></div><span class="hint">Click or press space to turn over</span></div>' +
           '<div class="grade" id="grade" hidden><button class="g-again" data-g="1">Again<small>1, comes back soon</small></button><button class="g-good" data-g="2">Good<small>2, see it later</small></button><button class="g-easy" data-g="3">Easy<small>3, much later</small></button></div>' +
-          '<p class="keys"><kbd>Space</kbd> turn over &nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> rate</p>';
+          '<p class="keys"><kbd>Space</kbd> turn over &nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> rate &nbsp; <kbd>P</kbd> listen</p>';
         var card = document.getElementById('card');
         card.addEventListener('click', flip);
         card.focus({ preventScroll: true });
@@ -709,11 +725,11 @@
       }
       function backHtml(e) {
         var rows = '';
-        if (e.type === 'N') rows = '<dt>Plural</dt><dd>' + esc(formsText(e)) + '</dd>';
-        if (e.type === 'V') rows = '<dt>Präteritum</dt><dd>' + esc(e.f1) + '</dd><dt>Perfekt</dt><dd>' + esc(e.f2) + '</dd>';
-        if (e.type === 'D') rows = '<dt>Kind</dt><dd>' + esc(ADV_KIND[e.cat] || e.cat) + '</dd><dt>Example</dt><dd>' + esc(e.ex) + '</dd>';
-        if (e.type === 'A' && e.f1 !== '—') rows = '<dt>Komparativ</dt><dd>' + esc(e.f1) + '</dd><dt>Superlativ</dt><dd>' + esc(e.f2) + '</dd>';
-        var top = s.dir === 'de' ? '<p class="meaning">' + esc(e.en) + '</p>' : '<p class="front" style="font-size:36px;margin:0 0 14px">' + wordHtml(e) + '</p>';
+        if (e.type === 'N') rows = '<dt>Plural</dt><dd>' + esc(formsText(e)) + (e.f1 !== '—' && e.art !== 'pl' ? ' ' + sayBtn('die ' + e.f1) : '') + '</dd>';
+        if (e.type === 'V') rows = '<dt>Präteritum</dt><dd>' + esc(e.f1) + ' ' + sayBtn('er ' + e.f1) + '</dd><dt>Perfekt</dt><dd>' + esc(e.f2) + ' ' + sayBtn('er ' + e.f2) + '</dd>';
+        if (e.type === 'D') rows = '<dt>Kind</dt><dd>' + esc(ADV_KIND[e.cat] || e.cat) + '</dd><dt>Example</dt><dd>' + esc(e.ex) + ' ' + sayBtn(e.ex) + '</dd>';
+        if (e.type === 'A' && e.f1 !== '—') rows = '<dt>Komparativ</dt><dd>' + esc(e.f1) + ' ' + sayBtn(e.f1) + '</dd><dt>Superlativ</dt><dd>' + esc(e.f2) + ' ' + sayBtn(e.f2) + '</dd>';
+        var top = s.dir === 'de' ? '<p class="meaning">' + esc(e.en) + '</p>' : '<p class="front" style="font-size:36px;margin:0 0 14px">' + wordHtml(e) + sayBtn(sayText(e)) + '</p>';
         return top + (rows ? '<dl>' + rows + '</dl>' : '');
       }
       function flip() {
@@ -744,6 +760,7 @@
         if (ev.target.tagName === 'INPUT') return;
         if (ev.key === ' ' || ev.key === 'Enter') { if (!flipped) { ev.preventDefault(); flip(); } }
         else if (flipped && /^[123]$/.test(ev.key)) grade(+ev.key);
+        else if ((ev.key === 'p' || ev.key === 'P') && window.DSSay && (s.dir === 'de' || flipped)) window.DSSay.say(sayText(cur));
       });
       show();
     }

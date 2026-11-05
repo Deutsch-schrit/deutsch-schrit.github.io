@@ -668,4 +668,17 @@ window.EXAMS = window.EXAMS || {};
   }
 
   window.ExamUI = { list: list, exam: exam, stop: clearTimer };
+  /* Pronunciation for vocabulary, flashcards and conjugation (same voices and speed as the listening exams). */
+  var sayBtnActive = null;
+  window.DSSay = {
+    ok: HAS_TTS,
+    say: function (text, btn) {
+      if (!HAS_TTS || !text) return;
+      if (sayBtnActive) sayBtnActive.classList.remove('saying');
+      sayBtnActive = btn || null;
+      if (btn) btn.classList.add('saying');
+      speak([['Sprecherin', text]], function () { if (btn) btn.classList.remove('saying'); if (sayBtnActive === btn) sayBtnActive = null; });
+    },
+    stop: stopSpeech
+  };
 })();

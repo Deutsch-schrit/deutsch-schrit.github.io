@@ -566,3 +566,15 @@ a.vconj:hover { border-bottom-color: var(--der); }
 .vp-row label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); flex: 1 1 200px; min-width: 0; }
 .vp-row select { font: inherit; font-size: 14px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 100%; }
 .vp-hint { font-size: 13px; color: var(--muted); flex: 1 1 260px; }
+
+/* Pronunciation buttons */
+.say { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-left: 6px; padding: 0; vertical-align: middle; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); cursor: pointer; flex-shrink: 0; }
+.say:hover, .say:focus-visible { color: var(--der); border-color: var(--der); }
+.say.saying { color: #fff; background: var(--der); border-color: var(--der); }
+.wcell { white-space: nowrap; }
+.card .front .say { width: 38px; height: 38px; margin-left: 12px; }
+.card .front .say svg { width: 22px; height: 22px; }
+.card dd .say { width: 26px; height: 26px; margin-left: 4px; }
+.conj-card h2 .say { width: 26px; height: 26px; float: right; margin: -2px 0 0 8px; }
+.page-head h1 .say { width: 40px; height: 40px; margin-left: 10px; }
+.page-head h1 .say svg { width: 22px; height: 22px; }
