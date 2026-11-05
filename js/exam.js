@@ -36,33 +36,152 @@ window.EXAMS = window.EXAMS || {};
   function wordCount(t) { var m = t.trim().match(/[A-Za-zÄÖÜäöüß0-9][\wÄÖÜäöüß\-]*/g); return m ? m.length : 0; }
   function fmtTime(sec) { sec = Math.max(0, Math.round(sec)); var m = Math.floor(sec / 60), s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
 
-  /* ---------- text to speech for listening ---------- */
+  /* ---------- text to speech for listening ----------
+     Picks the most natural German voices the device offers (neural / premium / enhanced voices first),
+     gives women and men their own voices, reads sentence by sentence with short pauses, and lets the
+     learner choose voices and speed. Choices are saved in localStorage (dsfs-voice). */
+  var HAS_TTS = 'speechSynthesis' in window;
   var voices = [];
-  function loadVoices() {
-    if (!('speechSynthesis' in window)) return;
-    voices = window.speechSynthesis.getVoices().filter(function (v) { return /^de(-|_|$)/i.test(v.lang); });
+  var FEM_V = /katja|amala|elke|gisela|klarissa|louisa|maja|tanja|anna|petra|helena|hedda|marlene|vicki|seraphina|ingrid|sabine|leonie|lea\b|google deutsch|female|weiblich/i;
+  var MALE_V = /conrad|killian|kasper|bernd|christoph|ralf|florian|markus|yannick|stefan|martin|hans|jonas|\bmale\b|männlich/i;
+  function vScore(v) {
+    var n = v.name + ' ' + (v.voiceURI || ''), sc = 0;
+    if (/natural|neural/i.test(n)) sc += 60;
+    if (/online/i.test(n)) sc += 15;
+    if (/premium/i.test(n)) sc += 55;
+    if (/enhanced|erweitert|verbessert/i.test(n)) sc += 45;
+    if (/google/i.test(n)) sc += 35;
+    if (/multilingual/i.test(n)) sc -= 5;
+    if (/espeak|compact|eloquence|novelty/i.test(n)) sc -= 80;
+    if (/^de[-_]DE/i.test(v.lang)) sc += 5;
+    return sc;
   }
-  if ('speechSynthesis' in window) {
+  function vGender(v) { return FEM_V.test(v.name) ? 'f' : MALE_V.test(v.name) ? 'm' : '?'; }
+  function loadVoices() {
+    if (!HAS_TTS) return;
+    voices = window.speechSynthesis.getVoices()
+      .filter(function (v) { return /^de(-|_|$)/i.test(v.lang); })
+      .map(function (v) { return { v: v, score: vScore(v), g: vGender(v) }; })
+      .sort(function (a, b) { return b.score - a.score; });
+    var panel = document.querySelector('.voice-panel');
+    if (panel) fillVoicePanel(panel);
+  }
+  if (HAS_TTS) {
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
   }
+  function vPrefs() { try { return JSON.parse(localStorage.getItem('dsfs-voice')) || {}; } catch (e) { return {}; } }
+  function vSave(p) { try { localStorage.setItem('dsfs-voice', JSON.stringify(p)); } catch (e) {} }
+
+  var NARRATOR = /^(durchsage|ansage|nachricht|nachrichten|radio|praxis|kaufhaus|hotel|autowerkstatt|gleis|bus|anrufbeantworter|mailbox)/i;
+  var FEM_S = /^(frau|mama|oma)|(in|erin)$|in \d+$|^(miriam|lena|ayşe|ayse|jana|anna|sara|petra|monika|maria|julia|lisa|sophie|emma)\b/i;
+  var MALE_S = /^(herr|mann|papa|opa)|^(moderator|sprecher|referent|dozent|student|kellner|kunde|verkäufer|hausarzt|datenschützer|gast)\b|^(tim|tom|jakob|markus|jonas|lukas|paul|max|ben|david)\b/i;
+  function speakerGender(label) {
+    if (NARRATOR.test(label)) return 'n';
+    if (/^(frau|herr)\b/i.test(label)) return /^frau/i.test(label) ? 'f' : 'm';
+    if (FEM_S.test(label) && !/^(herr|mann)/i.test(label)) return 'f';
+    if (MALE_S.test(label)) return 'm';
+    return null;
+  }
+  function candidates(g) {
+    var p = vPrefs(), list = voices.filter(function (x) { return x.g === g; });
+    if (!list.length) list = voices.slice();
+    var want = g === 'm' ? p.m : p.f;
+    if (want) {
+      var hit = voices.filter(function (x) { return x.v.voiceURI === want; })[0];
+      if (hit) list = [hit].concat(list.filter(function (x) { return x !== hit; }));
+    }
+    return list;
+  }
+  function assignVoices(lines) {
+    var map = {}, count = { f: 0, m: 0 }, unknown = 0;
+    lines.forEach(function (l) {
+      if (map.hasOwnProperty(l[0])) return;
+      var g = speakerGender(l[0]);
+      if (g === 'n') g = 'f';
+      if (!g) g = unknown++ % 2 === 0 ? 'f' : 'm';
+      var c = candidates(g);
+      map[l[0]] = c.length ? c[count[g] % c.length].v : null;
+      count[g]++;
+    });
+    return map;
+  }
+  function splitSentences(t) {
+    return t.replace(/\s+/g, ' ').trim().split(/(?<=[.!?…:])\s+(?=[A-ZÄÖÜ0-9„"])/).filter(Boolean);
+  }
+  var speakToken = 0, speakDone = null;
+  function finishSpeech() { var f = speakDone; speakDone = null; if (f) f(true); }
   function speak(lines, onEnd) {
-    if (!('speechSynthesis' in window)) { onEnd && onEnd(false); return; }
-    window.speechSynthesis.cancel();
-    var speakers = [];
-    lines.forEach(function (l) { if (speakers.indexOf(l[0]) < 0) speakers.push(l[0]); });
-    lines.forEach(function (l, i) {
-      var u = new SpeechSynthesisUtterance(l[1]);
-      u.lang = 'de-DE';
-      var k = speakers.indexOf(l[0]);
-      if (voices.length) u.voice = voices[k % voices.length];
-      u.pitch = voices.length > 1 ? 1 : [1, 0.75, 1.25, 0.9][k % 4];
-      u.rate = 0.95;
-      if (i === lines.length - 1) { u.onend = function () { onEnd && onEnd(true); }; u.onerror = function () { onEnd && onEnd(true); }; }
+    if (!HAS_TTS) { onEnd && onEnd(false); return; }
+    stopSpeech();
+    var my = ++speakToken, map = assignVoices(lines), rate = vPrefs().rate || 0.88;
+    speakDone = onEnd || null;
+    var q = [];
+    lines.forEach(function (l, li) {
+      var ss = splitSentences(l[1]);
+      ss.forEach(function (sen, si) {
+        q.push({ t: sen, v: map[l[0]], pause: si < ss.length - 1 ? 280 : (li < lines.length - 1 ? 750 : 0) });
+      });
+    });
+    function next(i) {
+      if (my !== speakToken) return;
+      if (i >= q.length) { finishSpeech(); return; }
+      var u = new SpeechSynthesisUtterance(q[i].t);
+      if (q[i].v) { u.voice = q[i].v; u.lang = q[i].v.lang; } else u.lang = 'de-DE';
+      u.rate = rate; u.pitch = 1;
+      var go = function () { setTimeout(function () { next(i + 1); }, q[i].pause); };
+      u.onend = go; u.onerror = go;
       window.speechSynthesis.speak(u);
+    }
+    setTimeout(function () { next(0); }, 150);
+  }
+  function stopSpeech() {
+    speakToken++;
+    if (HAS_TTS) window.speechSynthesis.cancel();
+    finishSpeech();
+  }
+
+  /* voice settings panel (shown before listening modules) */
+  function voicePanelHtml() {
+    if (!HAS_TTS) return '';
+    return '<div class="voice-panel"><p class="vp-head"><strong>Voices</strong> <span>Choose how the recordings sound. Your choice is saved in this browser.</span></p>' +
+      '<div class="vp-row"><label>Women and announcements<select class="vp-f"></select></label><label>Men<select class="vp-m"></select></label>' +
+      '<label>Speed<select class="vp-rate"><option value="0.82">Slow and calm</option><option value="0.88">Calm (recommended)</option><option value="0.96">Normal</option></select></label></div>' +
+      '<div class="vp-row"><button type="button" class="btn vp-test">Listen to a sample</button><span class="vp-hint"></span></div></div>';
+  }
+  function fillVoicePanel(panel) {
+    var p = vPrefs(), f = panel.querySelector('.vp-f'), m = panel.querySelector('.vp-m');
+    function opts(g, sel) {
+      var list = voices.slice().sort(function (a, b) { return (b.g === g) - (a.g === g) || b.score - a.score; });
+      var best = candidates(g)[0];
+      sel.innerHTML = list.map(function (x) {
+        var tag = x.score >= 40 ? ' (natural)' : x.score < 0 ? ' (robotic)' : '';
+        return '<option value="' + esc(x.v.voiceURI) + '"' + ((p[g] ? p[g] === x.v.voiceURI : best === x) ? ' selected' : '') + '>' + esc(x.v.name.replace(/^Microsoft /, '').replace(/\s+Online.*$|\s+\(.*$|\s+-\s+.*$/, '') + tag) + '</option>';
+      }).join('') || '<option>Default German voice</option>';
+    }
+    opts('f', f); opts('m', m);
+    panel.querySelector('.vp-rate').value = String(p.rate || 0.88);
+    var good = voices.some(function (x) { return x.score >= 40; });
+    panel.querySelector('.vp-hint').textContent = !voices.length
+      ? 'No German voice found on this device. Install one in your system settings, or use Microsoft Edge or Chrome.'
+      : good ? '' : 'Tip: the most natural German voices are in Microsoft Edge (Katja, Conrad) and Chrome (Google Deutsch). On iPhone and Mac, download an "Enhanced" German voice under Settings → Accessibility → Spoken Content → Voices.';
+  }
+  function bindVoicePanel(root) {
+    var panel = root.querySelector('.voice-panel');
+    if (!panel) return;
+    fillVoicePanel(panel);
+    function store() {
+      var p = vPrefs();
+      p.f = panel.querySelector('.vp-f').value; p.m = panel.querySelector('.vp-m').value;
+      p.rate = parseFloat(panel.querySelector('.vp-rate').value) || 0.88;
+      vSave(p);
+    }
+    panel.querySelectorAll('select').forEach(function (s) { s.addEventListener('change', store); });
+    panel.querySelector('.vp-test').addEventListener('click', function () {
+      store();
+      speak([['Frau Keller', 'Guten Tag. Willkommen zur Prüfung. Hören Sie bitte genau zu.'], ['Herr Okafor', 'Sie hören jeden Text einmal oder zweimal. Viel Erfolg!']]);
     });
   }
-  function stopSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
 
   /* ---------- overview pages ---------- */
   function list(provider) {
@@ -170,6 +289,7 @@ window.EXAMS = window.EXAMS || {};
     main.innerHTML = head + '<div class="mod-start"><p>' + (m.intro ? esc(m.intro) + ' ' : '') + 'When you start, the timer begins. You can hand in early.</p>' +
       (m.kind === 'items' && m.parts.some(function (p) { return p.audio || p.items.some(function (it) { return it.audio; }); }) ? listenNote() : '') +
       '<button class="btn primary" id="modstart">Start ' + esc(m.name) + '</button></div>';
+    bindVoicePanel(main);
     document.getElementById('modstart').addEventListener('click', function () {
       if (m.kind === 'items') itemsModule(e, m);
       else if (m.kind === 'writing') writingModule(e, m);
@@ -177,10 +297,10 @@ window.EXAMS = window.EXAMS || {};
     });
   }
   function listenNote() {
-    var ok = 'speechSynthesis' in window;
+    var ok = HAS_TTS;
     return '<p class="note">' + (ok
-      ? 'The listening texts are read aloud by your browser\'s German voice. Turn your sound on. Each text shows how often you may play it, as in the real exam. Voices differ between devices: Chrome, Edge and Safari usually have good German voices.'
-      : 'Your browser cannot read texts aloud, so the listening texts will be shown as text instead.') + '</p>';
+      ? 'The listening texts are read aloud by your device\'s German voices: women and men get different voices, with short pauses between sentences. Turn your sound on. Each text shows how often you may play it, as in the real exam.'
+      : 'Your browser cannot read texts aloud, so the listening texts will be shown as text instead.') + '</p>' + voicePanelHtml();
   }
 
   function timerBar(m, onEnd) {
@@ -293,7 +413,7 @@ window.EXAMS = window.EXAMS || {};
     root.querySelectorAll('.audio-box').forEach(function (box) {
       var left = +box.dataset.plays, btn = box.querySelector('.audio-play'), info = box.querySelector('.audio-left');
       var lines = JSON.parse(box.querySelector('.audio-data').textContent);
-      if (!('speechSynthesis' in window)) {
+      if (!HAS_TTS) {
         btn.remove(); info.textContent = 'Read the text instead:'; box.querySelector('.transcript').hidden = false; return;
       }
       btn.addEventListener('click', function () {

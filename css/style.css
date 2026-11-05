@@ -556,3 +556,13 @@ a.vconj:hover { border-bottom-color: var(--der); }
 .foot-links { margin-top: 6px; }
 .foot-links a { color: var(--muted); }
 .privacy h2 { font-size: 20px; }
+
+/* Voice settings for listening */
+.voice-panel { margin: 14px 0 18px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); }
+.vp-head { margin: 0 0 10px; font-size: 14px; }
+.vp-head span { color: var(--muted); margin-left: 4px; }
+.vp-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.vp-row + .vp-row { margin-top: 12px; }
+.vp-row label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); flex: 1 1 200px; min-width: 0; }
+.vp-row select { font: inherit; font-size: 14px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 100%; }
+.vp-hint { font-size: 13px; color: var(--muted); flex: 1 1 260px; }
