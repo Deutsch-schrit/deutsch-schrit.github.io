@@ -155,7 +155,7 @@ window.EXAMS = window.EXAMS || {};
       var list = voices.slice().sort(function (a, b) { return (b.g === g) - (a.g === g) || b.score - a.score; });
       var best = candidates(g)[0];
       sel.innerHTML = list.map(function (x) {
-        var tag = x.score >= 40 ? ' (natural)' : x.score < 0 ? ' (robotic)' : '';
+        var tag = x.score < 0 ? ' (robotic)' : '';
         return '<option value="' + esc(x.v.voiceURI) + '"' + ((p[g] ? p[g] === x.v.voiceURI : best === x) ? ' selected' : '') + '>' + esc(x.v.name.replace(/^Microsoft /, '').replace(/\s+Online.*$|\s+\(.*$|\s+-\s+.*$/, '') + tag) + '</option>';
       }).join('') || '<option>Default German voice</option>';
     }
