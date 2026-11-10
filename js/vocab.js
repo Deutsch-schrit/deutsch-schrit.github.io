@@ -418,6 +418,7 @@ N|die|Nervosität|—|nervousness
 N|die|Aufregung|Aufregungen|excitement, agitation
 N|die|Leistung|Leistungen|performance, achievement
 N|die|Konzentration|Konzentrationen|concentration
+N|das|Gedicht|Gedichte|poem
 `,
 B2: `
 N|die|Voraussetzung|Voraussetzungen|prerequisite, requirement
@@ -582,6 +583,14 @@ N|der|Blutzuckerspiegel|Blutzuckerspiegel|blood sugar level
 N|der|Traubenzucker|—|glucose, dextrose
 A|unleserlich|—|—|illegible
 N|die|Formulierung|Formulierungen|wording, phrasing
+N|der|Dichter|Dichter|poet (male)
+N|die|Dichterin|Dichterinnen|poet (female)
+V|dichten|dichtete|hat gedichtet|to write poetry, to compose
+N|die|Strophe|Strophen|stanza, verse
+N|der|Vers|Verse|line of verse
+N|der|Reim|Reime|rhyme
+V|sich reimen|reimte sich|hat sich gereimt|to rhyme
+N|die|Lyrik|—|poetry (as a genre)
 `,
 C1: `
 N|die|Annahme|Annahmen|assumption
@@ -665,6 +674,8 @@ A|zwangsläufig|—|—|inevitable
 A|ambivalent|—|—|ambivalent
 A|nachträglich|—|—|subsequent, after the fact
 V|nachhaken|hakte nach|hat nachgehakt|to ask a follow-up question
+N|der|Schimmer|—|shimmer, glimmer; keinen (blassen) Schimmer haben: to have no idea
+V|schimmern|schimmerte|hat geschimmert|to shimmer, to glimmer
 `,
 C2: `
 N|der|Anachronismus|Anachronismen|anachronism
