@@ -166,7 +166,7 @@ N|der|Rücken|Rücken|back
 N|die|Gesundheit|—|health
 N|die|Apotheke|Apotheken|pharmacy
 N|das|Krankenhaus|Krankenhäuser|hospital
-N|der|Termin|Termine|appointment
+N|der|Termin|Termine|appointment; deadline
 N|die|Kleidung|—|clothing
 N|die|Hose|Hosen|trousers
 N|das|Hemd|Hemden|shirt
@@ -409,11 +409,15 @@ V|erwarten|erwartete|hat erwartet|to expect
 N|das|Team|Teams|team
 N|der|Partner|Partner|partner (male)
 A|teamfähig|—|—|able to work in a team
-N|der|Lernstoff|—|study material
+N|der|Lernstoff|Lernstoffe|study material
 N|der|Zeitplan|Zeitpläne|schedule
 N|die|Wiederholung|Wiederholungen|revision; repetition
 V|bearbeiten|bearbeitete|hat bearbeitet|to work on, to complete (a task)
 N|der|Prüfer|Prüfer|examiner (male)
+N|die|Nervosität|—|nervousness
+N|die|Aufregung|Aufregungen|excitement, agitation
+N|die|Leistung|Leistungen|performance, achievement
+N|die|Konzentration|Konzentrationen|concentration
 `,
 B2: `
 N|die|Voraussetzung|Voraussetzungen|prerequisite, requirement
