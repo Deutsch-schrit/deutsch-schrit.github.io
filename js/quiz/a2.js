@@ -96,6 +96,11 @@ Ihr müsst ___ beeilen. ## euch
 Ich wasche ___ die Hände. ## mir
 Er ärgert ___ über den Stau. ## sich
 Kannst du ___ das vorstellen? (imagine) ## dir
+Which word order is correct? ## Heute freut sich mein Bruder. ## Heute freut sich mein Bruder. | Heute sich freut mein Bruder. | Heute freut mein Bruder sich sich.
+Perfekt: Wir ___ uns gestern getroffen. ## haben ## haben | sind | hatten
+Imperativ (du): ___ dich! (sich beeilen) ## Beeil || Beeile
+Das kann ich ___ nicht leisten. ## mir ## mir | mich | sich
+Which sentence needs sich? Er zieht ___ an. (He gets dressed.) ## sich ## sich | ihn | –
 `;
 
 QUIZ['a2-adjektiv'] = `

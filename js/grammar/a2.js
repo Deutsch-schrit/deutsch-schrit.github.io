@@ -109,6 +109,21 @@ GRAMMAR.push(
   '<p>Use the <strong>dative</strong> form when the sentence already has an accusative object: <span class="de">Ich wasche mich</span> (I wash myself) but <span class="de">Ich wasche mir die Hände</span> (I wash my hands).</p>' +
   '<h2>Common reflexive verbs</h2>' +
   TBL('Verb | Meaning | Example\nsich freuen auf / über | look forward to / be pleased about | Ich freue mich auf den Urlaub.\nsich interessieren für | be interested in | Sie interessiert sich für Kunst.\nsich ärgern über | be annoyed about | Er ärgert sich über den Stau.\nsich treffen | meet | Wir treffen uns um acht.\nsich fühlen | feel | Ich fühle mich nicht gut.\nsich vorstellen | introduce oneself; (Dat.) imagine | Darf ich mich vorstellen? Ich kann mir das vorstellen.') +
+  '<h2>Where sich goes in the sentence</h2>' +
+  '<p>The reflexive pronoun stands <strong>as early as possible after the conjugated verb</strong>. In a question or after another first element, it comes right after the subject pronoun. In a subordinate clause, it follows the subject, and the verb goes to the end. If the subject is a noun, <span class="de">sich</span> often comes <strong>before</strong> it.</p>' +
+  TBL('Sentence type | Example\nmain clause | Ich freue mich auf das Wochenende.\nquestion | Freust du dich auf das Wochenende?\nsomething else in position 1 | Morgen treffen wir uns im Café.\nsubordinate clause | Ich weiß, dass er sich für Musik interessiert.\nnoun as subject | Heute freut sich mein Bruder sehr.\nwith a modal verb | Du musst dich beeilen.') +
+  '<h2>Perfekt and Imperativ</h2>' +
+  '<p>Reflexive verbs form the Perfekt with <strong>haben</strong>, and the pronoun stays after <span class="de">haben</span>: <span class="de">Ich habe mich gefreut. Wir haben uns gestern getroffen.</span> In the Imperativ, the pronoun follows the verb:</p>' +
+  TBL('Person | Imperativ\ndu | Beeil dich!\nihr | Beeilt euch!\nSie | Beeilen Sie sich!') +
+  '<h2>Always reflexive or only sometimes?</h2>' +
+  '<p>Some verbs are <strong>always reflexive</strong>: they don\'t exist without <span class="de">sich</span>. Others can be used <strong>with or without</strong> it: reflexive when the action goes back to the subject, normal when it goes to someone else.</p>' +
+  TBL('Always reflexive | With or without sich\nsich beeilen (to hurry) | Ich wasche mich. / Ich wasche das Auto.\nsich bedanken (to say thank you) | Ich ärgere mich. / Du ärgerst mich.\nsich erholen (to recover) | Er zieht sich an. / Er zieht das Kind an.\nsich verlieben (to fall in love) | Sie stellt sich vor. / Sie stellt ihren Freund vor.\nsich weigern (to refuse) | Wir treffen uns. / Wir treffen Anna.') +
+  '<h2>"Each other" (reciprocal)</h2>' +
+  '<p>In the plural, <span class="de">uns, euch, sich</span> can also mean <strong>each other</strong>: <span class="de">Wir kennen uns seit Jahren.</span> (We have known each other for years.) <span class="de">Sie lieben sich.</span> (They love each other.) To make it clear, you can use <span class="de">einander</span>: <span class="de">Sie helfen einander.</span></p>' +
+  '<h2>Verbs with a dative pronoun</h2>' +
+  '<p>Some verbs always take the <strong>dative</strong> pronoun, because they also have an accusative object (the thing). These are very common in everyday German:</p>' +
+  TBL('Verb | Meaning | Example\nsich etwas merken | to remember, note | Ich kann mir das nicht merken.\nsich etwas wünschen | to wish for | Was wünschst du dir zum Geburtstag?\nsich etwas überlegen | to think something over | Ich überlege es mir.\nsich etwas ansehen | to have a look at | Wir sehen uns den Film an.\nsich etwas leisten | to afford | Das kann ich mir nicht leisten.\nsich etwas vorstellen | to imagine | Kannst du dir das vorstellen?') +
+  NOTE('The difference only shows with <span class="de">ich</span> and <span class="de">du</span> (<span class="de">mich/mir, dich/dir</span>); all other forms are the same in the accusative and dative.') +
   MISTAKE('Ich freue auf das Wochenende.', 'Ich freue mich auf das Wochenende.') +
   PRACTICE('Add the reflexive pronoun.',
     'Du musst ___ beeilen.\nWir treffen ___ vor dem Kino.\nIch putze ___ die Zähne.\nInteressierst du ___ für Fußball?\nSie (they) erinnern ___ an den Urlaub.',
