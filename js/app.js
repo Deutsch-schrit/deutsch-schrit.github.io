@@ -114,7 +114,7 @@
     if (vs.some(function (v) { return ufold(v) === ufold(g); })) return 'umlaut';
     return vs.some(function (v) { return closeEnough(g, v); }) ? 'almost' : 'bad';
   }
-  function markUmlauts(x) { return esc(x).replace(/([äöüÄÖÜß])/g, '<mark class="uml">$1</mark>'); }
+  function markUmlauts(x) { return esc(x).replace(/([äöüÄÖÜ])/g, '<mark class="uml">$1</mark>'); }
   function enClean(x) {
     return String(x).toLowerCase().replace(/\(.*?\)/g, '').replace(/[.!?"]/g, '').replace(/^\s*(to|the|a|an)\s+/, '').replace(/\s+/g, ' ').trim();
   }
@@ -572,7 +572,7 @@
       var n = buildQueue().length;
       stage.innerHTML = n
         ? '<div class="done"><h2>' + n + ' cards ready</h2><p>' + (s.mode === 'plural'
-            ? 'You see a noun in the singular. Type its plural (with or without die) and press Enter. Spelling counts: a missing or wrong umlaut (ä, ö, ü) is marked wrong. You can type ae, oe, ue or use the buttons under the box.'
+            ? 'You see a noun in the singular. Choose the correct plural from four options: click it or press 1 to 4. Watch the ending and the umlaut (ä, ö, ü).'
             : s.mode === 'type'
             ? (s.dir === 'en' ? 'You see the English word. Choose the article for nouns, type the German word and press Enter. ' : 'Type your answer and press Enter. ') + 'German spelling counts: a missing or wrong umlaut (ä, ö, ü) is marked wrong. You can type ae, oe, ue and ss, or use the buttons under the box.'
             : 'Click a card or press the space bar to turn it over, then rate how well you knew it.') +
@@ -613,6 +613,97 @@
         }
       }
       return f;
+    }
+
+
+    /* plural drill: four close options, one correct */
+    function umlautLast(w) {
+      if (/(ung|heit|keit|schaft|ion|ität|in|ie|ik|ur)$/i.test(w)) return null;
+      var m = w.match(/^(.*)(au|a|o|u)([^aeiouäöü]*(?:e[lnr]?|chen|lein)?)$/i);
+      if (!m) return null;
+      var map = { a: 'ä', o: 'ö', u: 'ü', au: 'äu', A: 'Ä', O: 'Ö', U: 'Ü', Au: 'Äu' };
+      return m[1] + (map[m[2]] || m[2]) + m[3];
+    }
+    function pluralOptions(e) {
+      var w = e.word, right = e.f1, u = umlautLast(w), c = [];
+      var endsE = /e$/.test(w), endsLR = /(el|er|en)$/.test(w);
+      c.push(w + (endsE ? 'n' : 'en'));
+      if (!endsE) c.push(w + 'e');
+      if (!endsE) c.push(w + 'er');
+      c.push(w + 's');
+      if (endsLR || endsE) c.push(w);
+      if (/in$/.test(w)) c.push(w + 'nen', w + 'en', w + 'e');
+      if (u && u !== w) {
+        c.push(endsE || endsLR ? u : u + 'e');
+        if (!endsE) c.push(u + 'er');
+        c.push(u + (endsE ? 'n' : 'en'));
+        if (endsLR) c.push(u + 'n');
+      }
+      var rightU = umlautLast(right);
+      if (/[äöü]/i.test(right)) c.push(right.replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/Ä/g, 'A').replace(/Ö/g, 'O').replace(/Ü/g, 'U'));
+      else if (rightU) c.push(rightU);
+      var seen = {}; seen[right.toLowerCase()] = 1;
+      c = c.filter(function (x) { var k = x.toLowerCase(); if (seen[k] || /eee|ee[n]?$/.test(x) && !/ee$/.test(w)) return false; seen[k] = 1; return true; });
+      c.sort(function (a, b) { return lev(a, right) - lev(b, right) || Math.random() - 0.5; });
+      var opts = c.slice(0, 3).concat([right]);
+      while (opts.length < 4) opts.push(w + ['ten', 'ne', 'se'][opts.length - 1]);
+      for (var i = opts.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = opts[i]; opts[i] = opts[j]; opts[j] = t; }
+      return opts;
+    }
+    function pluralSession() {
+      var queue = buildQueue(), total = queue.length, doneCount = 0, firstRight = 0, seen = {}, cur, answered = false, wasRight = false;
+      stopKeys();
+      function show() {
+        if (!queue.length) {
+          stage.innerHTML = '<div class="done"><h2>Round complete</h2><p>' + firstRight + ' of ' + Object.keys(seen).length + ' plurals correct on the first try. Your progress is saved.</p><button class="btn primary" id="again">New round</button></div>';
+          document.getElementById('again').addEventListener('click', function () { drawSetup(); idle(); });
+          drawSetup();
+          return;
+        }
+        cur = queue[0]; answered = false;
+        var opts = pluralOptions(cur), pct = Math.round(doneCount / Math.max(total, 1) * 100);
+        stage.innerHTML = '<div class="fc-progress"><span>' + doneCount + ' / ' + total + '</span><span class="track"><i style="width:' + pct + '%"></i></span><span>' + queue.length + ' left</span></div>' +
+          '<div class="card typing g-' + cur.art + '" id="pcard"><span class="kind">Plural</span><span class="lvl">' + cur.level + '</span>' +
+          '<div class="front">' + wordHtml(cur) + sayBtn(sayText(cur)) + '</div><p class="meaning">' + esc(cur.en) + '</p>' +
+          '<p class="pq">Which is the plural?</p><div class="popts" role="group" aria-label="Plural options">' +
+          opts.map(function (o, k) { return '<button type="button" class="popt" data-o="' + esc(o) + '"><kbd>' + (k + 1) + '</kbd><span class="art art-pl">die</span><span class="pw">' + esc(o) + '</span></button>'; }).join('') +
+          '</div><p class="verdict" id="verdict" role="status"></p><div class="tactions" id="tactions"></div></div>' +
+          '<p class="keys"><kbd>1</kbd>–<kbd>4</kbd> choose &nbsp; <kbd>Enter</kbd> next</p>';
+        stage.querySelectorAll('.popt').forEach(function (b) { b.addEventListener('click', function () { choose(b); }); });
+      }
+      function choose(b) {
+        if (answered) return;
+        answered = true;
+        wasRight = b.dataset.o === cur.f1;
+        stage.querySelectorAll('.popt').forEach(function (x) {
+          x.disabled = true;
+          if (x.dataset.o === cur.f1) { x.classList.add('p-right'); x.querySelector('.pw').innerHTML = markUmlauts(cur.f1); }
+          else if (x === b) x.classList.add('p-wrong');
+        });
+        var first = !seen[cur.id]; seen[cur.id] = true;
+        if (first && wasRight) firstRight++;
+        var v = document.getElementById('verdict');
+        v.className = 'verdict ' + (wasRight ? 'v-ok' : 'v-bad');
+        v.innerHTML = wasRight ? 'Correct! ' + sayBtn('die ' + cur.f1) : 'Not quite. The plural is <strong>die ' + markUmlauts(cur.f1) + '</strong>. ' + sayBtn('die ' + cur.f1) + ' This card will come back shortly.';
+        var a = document.getElementById('tactions');
+        a.innerHTML = '<button type="button" class="btn primary" id="pnext">Next</button>';
+        var nb = document.getElementById('pnext');
+        nb.addEventListener('click', next);
+        nb.focus({ preventScroll: true });
+      }
+      function next() {
+        schedule(cur, wasRight);
+        queue.shift();
+        if (wasRight) doneCount++;
+        else { queue.splice(Math.min(3, queue.length), 0, cur); total = Math.max(total, doneCount + queue.length); }
+        show();
+      }
+      listenKeys(function (ev) {
+        if (!answered && /^[1-4]$/.test(ev.key)) { var b = stage.querySelectorAll('.popt')[+ev.key - 1]; if (b) choose(b); }
+        else if (answered && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); next(); }
+        else if (ev.key === 'p' || ev.key === 'P') { if (window.DSSay) window.DSSay.say(sayText(cur)); }
+      });
+      show();
     }
 
     function typeSession() {
@@ -723,7 +814,8 @@
     }
 
     function session() {
-      if (s.mode === 'type' || s.mode === 'plural') return typeSession();
+      if (s.mode === 'plural') return pluralSession();
+      if (s.mode === 'type') return typeSession();
       var queue = buildQueue(), total = queue.length, doneCount = 0, flipped = false, cur;
       function show() {
         if (!queue.length) {
