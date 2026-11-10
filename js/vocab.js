@@ -273,6 +273,7 @@ V|sich bedanken|bedankte sich|hat sich bedankt|to say thank you
 N|das|Telefongespräch|Telefongespräche|phone call
 N|der|Arbeitsplatz|Arbeitsplätze|workplace; job
 N|das|Heimatland|Heimatländer|home country
+N|der|Stau|Staus|traffic jam
 `,
 B1: `
 N|die|Gesellschaft|Gesellschaften|society; company
@@ -408,6 +409,11 @@ V|erwarten|erwartete|hat erwartet|to expect
 N|das|Team|Teams|team
 N|der|Partner|Partner|partner (male)
 A|teamfähig|—|—|able to work in a team
+N|der|Lernstoff|—|study material
+N|der|Zeitplan|Zeitpläne|schedule
+N|die|Wiederholung|Wiederholungen|revision; repetition
+V|bearbeiten|bearbeitete|hat bearbeitet|to work on, to complete (a task)
+N|der|Prüfer|Prüfer|examiner (male)
 `,
 B2: `
 N|die|Voraussetzung|Voraussetzungen|prerequisite, requirement
@@ -491,7 +497,7 @@ V|bewirken|bewirkte|hat bewirkt|to bring about
 V|gestalten|gestaltete|hat gestaltet|to shape, to design
 V|hervorheben|hob hervor|hat hervorgehoben|to emphasise
 V|würdigen|würdigte|hat gewürdigt|to acknowledge, to give credit for
-V|angeben|gab an|hat angegeben|to state, to give (information)
+V|angeben|gab an|hat angegeben|to state, to give (information); angeben mit: to show off about
 V|bestehen|bestand|hat bestanden|to pass (an exam); to exist
 V|eingrenzen|grenzte ein|hat eingegrenzt|to narrow down
 V|verunsichern|verunsicherte|hat verunsichert|to unsettle
@@ -566,6 +572,12 @@ V|sich verstehen (mit)|verstand sich|hat sich verstanden|to get along (with)
 A|gleichberechtigt|—|—|equal, having equal rights
 A|wertschätzend|—|—|appreciative, respectful
 A|belehrend|—|—|lecturing, condescending
+N|der|Puffertag|Puffertage|buffer day
+N|die|Musterklausur|Musterklausuren|sample exam
+N|der|Blutzuckerspiegel|Blutzuckerspiegel|blood sugar level
+N|der|Traubenzucker|—|glucose, dextrose
+A|unleserlich|—|—|illegible
+N|die|Formulierung|Formulierungen|wording, phrasing
 `,
 C1: `
 N|die|Annahme|Annahmen|assumption
@@ -648,6 +660,7 @@ A|vorrangig|—|—|primary, priority
 A|zwangsläufig|—|—|inevitable
 A|ambivalent|—|—|ambivalent
 A|nachträglich|—|—|subsequent, after the fact
+V|nachhaken|hakte nach|hat nachgehakt|to ask a follow-up question
 `,
 C2: `
 N|der|Anachronismus|Anachronismen|anachronism
