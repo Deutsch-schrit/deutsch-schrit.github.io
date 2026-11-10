@@ -578,3 +578,6 @@ a.vconj:hover { border-bottom-color: var(--der); }
 .conj-card h2 .say { width: 26px; height: 26px; float: right; margin: -2px 0 0 8px; }
 .page-head h1 .say { width: 40px; height: 40px; margin-left: 10px; }
 .page-head h1 .say svg { width: 22px; height: 22px; }
+mark.uml { background: var(--warn-bg); color: inherit; font-weight: 700; padding: 0 1px; border-radius: 3px; }
+.fc-note { margin: 0; font-size: 14px; color: var(--muted); }
+.card.typing .meaning { margin: -4px 0 14px; text-align: center; color: var(--muted); font-family: var(--serif); font-size: 18px; }

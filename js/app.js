@@ -104,6 +104,17 @@
     if (vs.indexOf(g) > -1) return 'ok';
     return vs.some(function (v) { return closeEnough(g, v); }) ? 'almost' : 'bad';
   }
+  /* strict German spelling for typed flashcards: 'ok', 'umlaut' (only ä/ö/ü wrong or missing), 'almost' (small typo) or 'bad' */
+  function ufold(x) { return x.replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u'); }
+  function checkDeStrict(input, variants) {
+    var g = gnorm(input);
+    if (!g) return 'bad';
+    var vs = variants.map(gnorm);
+    if (vs.indexOf(g) > -1) return 'ok';
+    if (vs.some(function (v) { return ufold(v) === ufold(g); })) return 'umlaut';
+    return vs.some(function (v) { return closeEnough(g, v); }) ? 'almost' : 'bad';
+  }
+  function markUmlauts(x) { return esc(x).replace(/([äöüÄÖÜß])/g, '<mark class="uml">$1</mark>'); }
   function enClean(x) {
     return String(x).toLowerCase().replace(/\(.*?\)/g, '').replace(/[.!?"]/g, '').replace(/^\s*(to|the|a|an)\s+/, '').replace(/\s+/g, ' ').trim();
   }
@@ -497,11 +508,15 @@
       '<div class="fc-wrap"><aside class="fc-setup" id="setup"></aside><section class="fc-stage" id="stage" aria-live="polite"></section></div>';
     var setup = document.getElementById('setup'), stage = document.getElementById('stage');
 
-    function pool() { return VOCAB.filter(function (e) { return s.levels.indexOf(e.level) > -1 && s.types.indexOf(e.type) > -1; }); }
+    function pk(e) { return s.mode === 'plural' ? e.id + '|pl' : e.id; }
+    function pool() {
+      if (s.mode === 'plural') return VOCAB.filter(function (e) { return s.levels.indexOf(e.level) > -1 && e.type === 'N' && e.art !== 'pl' && e.f1 !== '—'; });
+      return VOCAB.filter(function (e) { return s.levels.indexOf(e.level) > -1 && s.types.indexOf(e.type) > -1; });
+    }
     function drawSetup() {
       var p = pool(), now = Date.now(), boxes = [0, 0, 0, 0, 0], due = 0, fresh = 0;
       p.forEach(function (e) {
-        var r = progress[e.id];
+        var r = progress[pk(e)];
         if (!r) { fresh++; return; }
         boxes[r.box - 1]++;
         if (r.due <= now) due++;
@@ -512,10 +527,10 @@
         }).join('') + '</div>';
       }
       setup.innerHTML = '<div class="fgroup"><span>Level</span>' + multi('levels', LEVELS.map(function (l) { return [l.code, l.code]; }), s.levels) + '</div>' +
-        '<div class="fgroup"><span>Word type</span>' + multi('types', [['N', 'Nouns'], ['V', 'Verbs'], ['A', 'Adjectives'], ['D', 'Adverbs']], s.types) + '</div>' +
-        '<div class="fgroup"><span>Practice mode</span><div class="chips"><button class="chip" data-mode="flip" aria-pressed="' + (s.mode === 'flip') + '">Flip cards</button><button class="chip" data-mode="type" aria-pressed="' + (s.mode === 'type') + '">Type answers</button></div></div>' +
+        (s.mode === 'plural' ? '<div class="fgroup"><span>Word type</span><p class="fc-note">Nouns with a plural form</p></div>' : '<div class="fgroup"><span>Word type</span>' + multi('types', [['N', 'Nouns'], ['V', 'Verbs'], ['A', 'Adjectives'], ['D', 'Adverbs']], s.types) + '</div>') +
+        '<div class="fgroup"><span>Practice mode</span><div class="chips"><button class="chip" data-mode="flip" aria-pressed="' + (s.mode === 'flip') + '">Flip cards</button><button class="chip" data-mode="type" aria-pressed="' + (s.mode === 'type') + '">Type answers</button><button class="chip" data-mode="plural" aria-pressed="' + (s.mode === 'plural') + '">Plural</button></div></div>' +
         (s.mode === 'type' ? '<div class="fgroup"><span>Also ask for</span><div class="chips"><button class="chip" data-forms="1" aria-pressed="' + s.forms + '">Word + forms</button><button class="chip" data-forms="0" aria-pressed="' + !s.forms + '">Word only</button></div></div>' : '') +
-        '<div class="fgroup"><span>Direction</span><div class="chips"><button class="chip" data-dir="de" aria-pressed="' + (s.dir === 'de') + '">German first</button><button class="chip" data-dir="en" aria-pressed="' + (s.dir === 'en') + '">English first</button></div></div>' +
+        (s.mode === 'plural' ? '' : '<div class="fgroup"><span>Direction</span><div class="chips"><button class="chip" data-dir="de" aria-pressed="' + (s.dir === 'de') + '">' + (s.mode === 'type' ? 'German → type English' : 'German first') + '</button><button class="chip" data-dir="en" aria-pressed="' + (s.dir === 'en') + '">' + (s.mode === 'type' ? 'English → type German' : 'English first') + '</button></div></div>') +
         '<div class="fgroup"><span>New cards per round</span><div class="chips">' + [10, 20, 40].map(function (n) { return '<button class="chip" data-per="' + n + '" aria-pressed="' + (s.perSession === n) + '">' + n + '</button>'; }).join('') + '</div></div>' +
         '<div class="fc-stats">' + p.length + ' cards selected: ' + fresh + ' new, ' + due + ' due.<div class="boxes">' +
         boxes.map(function (b, k) { return '<div title="Box ' + (k + 1) + '"><b>' + b + '</b>Box ' + (k + 1) + '</div>'; }).join('') + '</div></div>' +
@@ -538,16 +553,16 @@
           resetBtn.textContent = 'Click again to delete progress for ' + p.length + ' cards';
           return;
         }
-        p.forEach(function (e) { delete progress[e.id]; });
+        p.forEach(function (e) { delete progress[pk(e)]; });
         save('dsfs-progress', progress); drawSetup(); idle();
       });
     }
 
     function buildQueue() {
       var p = pool(), now = Date.now();
-      var dueCards = p.filter(function (e) { return progress[e.id] && progress[e.id].due <= now; })
-        .sort(function (a, b) { return progress[a.id].box - progress[b.id].box; });
-      var fresh = p.filter(function (e) { return !progress[e.id]; });
+      var dueCards = p.filter(function (e) { return progress[pk(e)] && progress[pk(e)].due <= now; })
+        .sort(function (a, b) { return progress[pk(a)].box - progress[pk(b)].box; });
+      var fresh = p.filter(function (e) { return !progress[pk(e)]; });
       for (var i = fresh.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fresh[i]; fresh[i] = fresh[j]; fresh[j] = t; }
       return dueCards.concat(fresh.slice(0, s.perSession));
     }
@@ -556,8 +571,10 @@
       stopKeys();
       var n = buildQueue().length;
       stage.innerHTML = n
-        ? '<div class="done"><h2>' + n + ' cards ready</h2><p>' + (s.mode === 'type'
-            ? 'Type your answer and press Enter. Small typos count as almost right, and ae, oe, ue and ss work in place of ä, ö, ü and ß.'
+        ? '<div class="done"><h2>' + n + ' cards ready</h2><p>' + (s.mode === 'plural'
+            ? 'You see a noun in the singular. Type its plural (with or without die) and press Enter. Spelling counts: a missing or wrong umlaut (ä, ö, ü) is marked wrong. You can type ae, oe, ue or use the buttons under the box.'
+            : s.mode === 'type'
+            ? (s.dir === 'en' ? 'You see the English word. Choose the article for nouns, type the German word and press Enter. ' : 'Type your answer and press Enter. ') + 'German spelling counts: a missing or wrong umlaut (ä, ö, ü) is marked wrong. You can type ae, oe, ue and ss, or use the buttons under the box.'
             : 'Click a card or press the space bar to turn it over, then rate how well you knew it.') +
           '</p><button class="btn primary" id="start">Start round</button></div>'
         : '<div class="done"><h2>All done</h2><p>No cards are due in this selection. Choose another level, or come back tomorrow.</p></div>';
@@ -566,29 +583,33 @@
     }
 
     function schedule(card, correct) {
-      var r = progress[card.id] || { box: 0 };
+      var r = progress[pk(card)] || { box: 0 };
       var box = correct ? Math.min(5, Math.max(r.box, 1) + 1) : 1;
-      progress[card.id] = { box: box, due: Date.now() + INTERVAL_DAYS[box] * DAY };
+      progress[pk(card)] = { box: box, due: Date.now() + INTERVAL_DAYS[box] * DAY };
       save('dsfs-progress', progress);
     }
 
     function fieldsFor(e) {
       var f = [];
+      if (s.mode === 'plural') {
+        f.push({ label: 'Plural', hint: 'e.g. die Männer', check: function (v) { return checkDeStrict(v, [e.f1, 'die ' + e.f1]); }, answer: 'die ' + e.f1 });
+        return f;
+      }
       if (s.dir === 'de') f.push({ label: 'English', check: function (v) { return checkEn(v, e.en); }, answer: e.en });
       else {
         if (e.type === 'N') f.push({ label: 'Article', article: true, answer: e.art === 'pl' ? 'die' : e.art });
-        f.push({ label: 'German', check: function (v) { return checkDe(v, [e.word, e.word.replace(/^sich /, '')]); }, answer: e.word });
+        f.push({ label: 'German', check: function (v) { return checkDeStrict(v, [e.word, e.word.replace(/^sich /, ''), e.word.replace(/\s*\([^)]*\)\s*$/, ''), e.word.replace(/^sich /, '').replace(/\s*\([^)]*\)\s*$/, '')]); }, answer: e.word });
       }
       if (s.forms) {
         if (e.type === 'N' && e.art !== 'pl' && e.f1 !== '—')
-          f.push({ label: 'Plural', hint: 'e.g. Männer', check: function (v) { return checkDe(v, [e.f1, 'die ' + e.f1]); }, answer: 'die ' + e.f1 });
+          f.push({ label: 'Plural', hint: 'e.g. Männer', check: function (v) { return checkDeStrict(v, [e.f1, 'die ' + e.f1]); }, answer: 'die ' + e.f1 });
         if (e.type === 'V') {
-          f.push({ label: 'Präteritum', hint: 'er/sie/es form', check: function (v) { return checkDe(v, [e.f1, 'er ' + e.f1]); }, answer: e.f1 });
-          f.push({ label: 'Perfekt', hint: 'e.g. hat gemacht / ist gegangen', check: function (v) { return checkDe(v, [e.f2, 'er ' + e.f2]); }, answer: e.f2 });
+          f.push({ label: 'Präteritum', hint: 'er/sie/es form', check: function (v) { return checkDeStrict(v, [e.f1, 'er ' + e.f1]); }, answer: e.f1 });
+          f.push({ label: 'Perfekt', hint: 'e.g. hat gemacht / ist gegangen', check: function (v) { return checkDeStrict(v, [e.f2, 'er ' + e.f2]); }, answer: e.f2 });
         }
         if (e.type === 'A' && e.f1 !== '—') {
-          f.push({ label: 'Komparativ', check: function (v) { return checkDe(v, [e.f1]); }, answer: e.f1 });
-          f.push({ label: 'Superlativ', hint: 'am …sten', check: function (v) { return checkDe(v, [e.f2, e.f2.replace(/^am /, '')]); }, answer: e.f2 });
+          f.push({ label: 'Komparativ', check: function (v) { return checkDeStrict(v, [e.f1]); }, answer: e.f1 });
+          f.push({ label: 'Superlativ', hint: 'am …sten', check: function (v) { return checkDeStrict(v, [e.f2, e.f2.replace(/^am /, '')]); }, answer: e.f2 });
         }
       }
       return f;
@@ -605,8 +626,9 @@
           return;
         }
         cur = queue[0]; fields = fieldsFor(cur);
-        var g = s.dir === 'de' && cur.type === 'N' && cur.art !== 'pl' ? ' g-' + cur.art : '';
-        var prompt = s.dir === 'de' ? '<div class="front">' + wordHtml(cur) + '</div>' : '<div class="front en">' + esc(cur.en) + '</div>';
+        var g = (s.dir === 'de' || s.mode === 'plural') && cur.type === 'N' && cur.art !== 'pl' ? ' g-' + cur.art : '';
+        var prompt = s.mode === 'plural' ? '<div class="front">' + wordHtml(cur) + sayBtn(sayText(cur)) + '</div><p class="meaning">' + esc(cur.en) + '</p>'
+          : s.dir === 'de' ? '<div class="front">' + wordHtml(cur) + sayBtn(sayText(cur)) + '</div>' : '<div class="front en">' + esc(cur.en) + '</div>';
         var pct = Math.round(doneCount / Math.max(total, 1) * 100);
         var inputs = fields.map(function (f, k) {
           if (f.article) {
@@ -618,7 +640,7 @@
             '<input class="tinput" id="tin' + k + '" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"' + (f.hint ? ' placeholder="' + f.hint + '"' : '') + '><span class="tsol"></span></div>';
         }).join('');
         stage.innerHTML = '<div class="fc-progress"><span>' + doneCount + ' / ' + total + '</span><span class="track"><i style="width:' + pct + '%"></i></span><span>' + queue.length + ' left</span></div>' +
-          '<form class="card typing' + g + '" id="tform" autocomplete="off"><span class="kind">' + TYPE_NAMES[cur.type] + '</span><span class="lvl">' + cur.level + '</span>' + prompt +
+          '<form class="card typing' + g + '" id="tform" autocomplete="off"><span class="kind">' + (s.mode === 'plural' ? 'Plural' : TYPE_NAMES[cur.type]) + '</span><span class="lvl">' + cur.level + '</span>' + prompt +
           '<div class="tfields">' + inputs + '</div>' +
           '<div class="umlauts" aria-label="Insert special characters">' + ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'].map(function (c) { return '<button type="button" class="ukey" data-ch="' + c + '">' + c + '</button>'; }).join('') + '</div>' +
           '<p class="verdict" id="verdict" role="status"></p>' +
@@ -665,25 +687,27 @@
             res = gaveUp ? 'bad' : f.check(inp.value);
             inp.disabled = true;
           }
-          box.classList.add('r-' + res);
-          if (res !== 'ok') box.querySelector('.tsol').textContent = (res === 'almost' ? 'Correct spelling: ' : 'Answer: ') + f.answer;
+          box.classList.add('r-' + (res === 'umlaut' ? 'almost' : res));
+          if (res !== 'ok') box.querySelector('.tsol').innerHTML = (res === 'umlaut' ? '<strong>Check the umlaut:</strong> ' : res === 'almost' ? 'Correct spelling: ' : 'Answer: ') + markUmlauts(f.answer);
           return res;
         });
-        var bad = results.filter(function (r) { return r === 'bad'; }).length;
+        var umlaut = results.filter(function (r) { return r === 'umlaut'; }).length;
         var almost = results.filter(function (r) { return r === 'almost'; }).length;
-        lastCorrect = bad === 0;
+        var bad = results.filter(function (r) { return r === 'bad'; }).length;
+        lastCorrect = bad === 0 && umlaut === 0 && almost === 0;
         var v = document.getElementById('verdict');
-        v.className = 'verdict ' + (bad ? 'v-bad' : almost ? 'v-almost' : 'v-ok');
+        v.className = 'verdict ' + (bad ? 'v-bad' : (almost || umlaut) ? 'v-almost' : 'v-ok');
         v.textContent = gaveUp ? 'Here is the answer. This card will come back shortly.'
           : bad ? (bad === results.length ? 'Not quite. This card will come back shortly.' : 'Partly correct. This card will come back shortly.')
-          : almost ? 'Almost! Check the spelling.' : 'Correct!';
+          : umlaut ? 'Almost! Watch the umlaut (ä, ö, ü). This card will come back shortly.'
+          : almost ? 'Almost! Check the spelling. This card will come back shortly.' : 'Correct!';
         curFirst = !seen[cur.id];
         seen[cur.id] = true;
         if (curFirst && lastCorrect) firstRight++;
         if (s.dir === 'en' && cur.type === 'N' && cur.art !== 'pl') form.classList.add('g-' + cur.art);
         var actions = document.getElementById('tactions');
         actions.innerHTML = '<button type="submit" class="btn primary" id="tnext">Next</button>' +
-          (bad && !gaveUp ? '<button type="button" class="btn" id="tover">I was right</button>' : '');
+          ((bad || almost || umlaut) && !gaveUp ? '<button type="button" class="btn" id="tover">I was right</button>' : '');
         document.getElementById('tnext').focus({ preventScroll: true });
         var over = document.getElementById('tover');
         if (over) over.addEventListener('click', function () { lastCorrect = true; if (curFirst) firstRight++; next(); });
@@ -699,7 +723,7 @@
     }
 
     function session() {
-      if (s.mode === 'type') return typeSession();
+      if (s.mode === 'type' || s.mode === 'plural') return typeSession();
       var queue = buildQueue(), total = queue.length, doneCount = 0, flipped = false, cur;
       function show() {
         if (!queue.length) {
