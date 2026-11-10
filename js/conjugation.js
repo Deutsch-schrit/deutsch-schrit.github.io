@@ -10,7 +10,7 @@
   var REFL_DAT = ['mir', 'dir', 'sich', 'uns', 'euch', 'sich'];
   var DATIVE_REFLEXIVE = { 'anmaßen': 1, 'verbitten': 1 };
   /* Verbs normally used only in the 3rd person (es geschieht, es gelingt mir, die Lage spitzt sich zu) */
-  var THIRD_ONLY = { geschehen: 1, gelingen: 1, passieren: 1, 'erübrigen': 1, obliegen: 1, innewohnen: 1, zuspitzen: 1, beruhen: 1, 'fußen': 1 };
+  var THIRD_ONLY = { geschehen: 1, gelingen: 1, passieren: 1, 'erübrigen': 1, obliegen: 1, innewohnen: 1, zuspitzen: 1, beruhen: 1, 'fußen': 1, reimen: 1 };
 
   /* Fully irregular present tense (ich, du, er, wir, ihr, sie) */
   var PRESENT_IRREG = {
